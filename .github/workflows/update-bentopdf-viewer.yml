@@ -1,0 +1,143 @@
+name: Update BentoPDF Viewer
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  update-snippet:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Read current upstream version marker
+        id: current-version
+        run: |
+          if [ -f vendor/bentopdf-viewer/.upstream-version ]; then
+            CUR=$(cat vendor/bentopdf-viewer/.upstream-version)
+          else
+            CUR=""
+          fi
+          echo "version=$CUR" >> "$GITHUB_OUTPUT"
+
+      - name: Read latest commit from our viewer fork
+        id: upstream-version
+        run: |
+          LATEST=$(git ls-remote https://github.com/alam00000/bentopdf-pdfium-viewer refs/heads/main | cut -c1-12)
+          echo "version=$LATEST" >> "$GITHUB_OUTPUT"
+
+      - name: Should update?
+        id: gate
+        run: |
+          if [ "${{ steps.upstream-version.outputs.version }}" = "${{ steps.current-version.outputs.version }}" ]; then
+            echo "run=false" >> "$GITHUB_OUTPUT"
+            echo "No upstream version change detected."
+          else
+            echo "run=true" >> "$GITHUB_OUTPUT"
+            echo "Updating from '${{ steps.current-version.outputs.version }}' to '${{ steps.upstream-version.outputs.version }}'"
+          fi
+
+      - name: Enable corepack (pnpm)
+        if: steps.gate.outputs.run == 'true'
+        run: corepack enable
+
+      - name: Prepare workspace
+        if: steps.gate.outputs.run == 'true'
+        run: |
+          mkdir -p vendor/bentopdf-viewer
+          npm config set cache ./\.npm-cache
+
+      - name: Clone our viewer fork
+        if: steps.gate.outputs.run == 'true'
+        run: git clone --depth 1 --branch main https://github.com/alam00000/bentopdf-pdfium-viewer ./_fork/bentopdf-pdfium-viewer
+
+      - name: Setup Node
+        if: steps.gate.outputs.run == 'true'
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install upstream deps
+        if: steps.gate.outputs.run == 'true'
+        working-directory: ./_fork/bentopdf-pdfium-viewer
+        run: pnpm install --no-frozen-lockfile
+
+      - name: Build snippet
+        if: steps.gate.outputs.run == 'true'
+        working-directory: ./_fork/bentopdf-pdfium-viewer
+        run: pnpm run build:snippet
+
+      - name: Pack snippet tarball
+        if: steps.gate.outputs.run == 'true'
+        working-directory: ./_fork/bentopdf-pdfium-viewer
+        run: |
+          npm pack ./viewers/snippet --pack-destination ../../vendor/bentopdf-viewer
+          ls -l ../../vendor/bentopdf-viewer
+
+      - name: Sanitize tarball (rename pkg and pin deps)
+        if: steps.gate.outputs.run == 'true'
+        env:
+          UPSTREAM_VERSION: ${{ steps.upstream-version.outputs.version }}
+        run: |
+          TARBALL=$(ls vendor/bentopdf-viewer/*.tgz | sort | tail -n1)
+          TMP=$(mktemp -d)
+          tar -xzf "$TARBALL" -C "$TMP"
+          PKG="$TMP/package/package.json"
+          PKG="$PKG" node - <<'NODE'
+            const fs = require("fs");
+            const path = process.env.PKG;
+            const pkg = JSON.parse(fs.readFileSync(path, "utf8"));
+            pkg.name = "bentopdf-viewer";
+            pkg.dependencies = pkg.dependencies || {};
+            // The rollup bundle inlines every @embedpdf/* package, so these
+            // declared deps would only pull unused copies from upstream npm.
+            for (const k of Object.keys(pkg.dependencies)) {
+              if (k.startsWith("@embedpdf/")) delete pkg.dependencies[k];
+              if (k === "preact") pkg.dependencies[k] = "^10.17.0";
+            }
+            fs.writeFileSync(path, JSON.stringify(pkg, null, 2) + "\n");
+          NODE
+          PKG_VERSION=$(node -p "require('./$TMP/package/package.json').version" 2>/dev/null || node -p "require('$TMP/package/package.json').version")
+          NEW=vendor/bentopdf-viewer/bentopdf-viewer-${PKG_VERSION}.tgz
+          tar -czf "$NEW" -C "$TMP" package
+          # Remove any older snippet tarballs, keep only the new one
+          find vendor/bentopdf-viewer -maxdepth 1 -name 'bentopdf-viewer-*.tgz' ! -name "$(basename "$NEW")" -delete
+          rm -rf "$TMP"
+          ls -l vendor/bentopdf-viewer
+
+      - name: Update package.json dependency path
+        if: steps.gate.outputs.run == 'true'
+        run: |
+          TARBALL=$(ls vendor/bentopdf-viewer/bentopdf-viewer-*.tgz | sort | tail -n1)
+          node -e "const fs=require('fs');const pkg=require('./package.json');const tar=process.argv[1];pkg.dependencies['bentopdf-viewer']='file:'+tar;fs.writeFileSync('package.json',JSON.stringify(pkg,null,2)+'\n');" "$TARBALL"
+
+      - name: Refresh lockfile
+        if: steps.gate.outputs.run == 'true'
+        run: npm install --package-lock-only --ignore-scripts
+
+      - name: Write upstream version marker
+        if: steps.gate.outputs.run == 'true'
+        run: |
+          echo "${{ steps.upstream-version.outputs.version }}" > vendor/bentopdf-viewer/.upstream-version
+
+      - name: Cleanup upstream clone
+        if: steps.gate.outputs.run == 'true'
+        run: rm -rf ./_fork
+
+      - name: Create Pull Request
+        if: steps.gate.outputs.run == 'true'
+        uses: peter-evans/create-pull-request@v6
+        with:
+          commit-message: "build(deps): bump bentopdf-viewer from ${{ steps.current-version.outputs.version }} to ${{ steps.upstream-version.outputs.version }}"
+          title: "build(deps): bump bentopdf-viewer from ${{ steps.current-version.outputs.version }} to ${{ steps.upstream-version.outputs.version }}"
+          body: |
+            - Build snippet from the BentoPDF viewer fork via `pnpm run build:snippet`
+            - Pack tarball into `vendor/bentopdf-viewer/` and point dependency to it
+            - Refresh package-lock.json
+          branch: chore/update-bentopdf-viewer
+          delete-branch: true
