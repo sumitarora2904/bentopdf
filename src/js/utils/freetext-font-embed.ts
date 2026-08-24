@@ -19,6 +19,7 @@ import {
 } from 'pdf-lib';
 import fontkit from '@pdf-lib/fontkit';
 import type { FreeTextSystemFontAnnotation } from '@/types';
+import { needsFontEmbedding, SCRIPT_FONTS } from './freetext-script.js';
 
 interface LocalFontQueryResult {
   postscriptName: string;
@@ -160,6 +161,47 @@ export function extractTtcFace(
     if (r.tag === 'head' && r.len >= 12) w32(newOff + 8, 0);
   });
   return out;
+}
+
+let localFontIndex: Map<string, string> | null = null;
+
+async function localPostScriptNames(): Promise<Map<string, string>> {
+  if (localFontIndex) return localFontIndex;
+  const index = new Map<string, string>();
+  const qlf = (window as unknown as { queryLocalFonts?: QueryLocalFonts })
+    .queryLocalFonts;
+  if (typeof qlf === 'function') {
+    try {
+      for (const f of await qlf()) {
+        index.set(f.postscriptName.toLowerCase(), f.postscriptName);
+      }
+    } catch (err) {
+      console.warn('freetext fonts: local font access denied', err);
+    }
+  }
+  localFontIndex = index;
+  return index;
+}
+
+export async function pickFontsForText(text: string): Promise<string[]> {
+  if (!needsFontEmbedding(text)) return [];
+  const index = await localPostScriptNames();
+  if (index.size === 0) return [];
+  const wanted: string[] = [];
+  for (const [re, families] of SCRIPT_FONTS) {
+    if (re.test(text)) wanted.push(...families);
+  }
+  wanted.push('ArialUnicodeMS', 'NotoSans-Regular', 'LucidaGrande');
+  const out: string[] = [];
+  for (const name of wanted) {
+    const hit = index.get(name.toLowerCase());
+    if (hit && !out.includes(hit)) out.push(hit);
+  }
+  return out;
+}
+
+export async function pickFontForText(text: string): Promise<string> {
+  return (await pickFontsForText(text))[0] ?? '';
 }
 
 async function fetchFontBytes(
@@ -379,10 +421,22 @@ function bakeAppearance(
   });
   ops.push(endText(), popGraphicsState());
 
-  const xobj = doc.context.formXObject(ops, {
-    BBox: [0, 0, w, h],
-    Resources: { Font: { F0: font.ref } },
-  });
+  const deg = (((annot.rotation ?? 0) % 360) + 360) % 360;
+  const rad = (deg * Math.PI) / 180;
+  const c = Math.cos(rad);
+  const s = Math.sin(rad);
+  const xs = [0, w * c, -h * s, w * c - h * s];
+  const ys = [0, w * s, h * c, w * s + h * c];
+  const xobj = doc.context.formXObject(
+    ops,
+    deg === 0
+      ? { BBox: [0, 0, w, h], Resources: { Font: { F0: font.ref } } }
+      : {
+          BBox: [0, 0, w, h],
+          Matrix: [c, s, -s, c, -Math.min(...xs), -Math.min(...ys)],
+          Resources: { Font: { F0: font.ref } },
+        }
+  );
   const ref = doc.context.register(xobj);
   dict.set(PDFName.of('AP'), doc.context.obj({ N: ref }));
 }
@@ -391,9 +445,17 @@ export async function embedFreeTextSystemFonts(
   bytes: Uint8Array,
   annotations: FreeTextSystemFontAnnotation[]
 ): Promise<Uint8Array> {
-  const candidates = annotations.filter(
-    (a) => a.fontPostScriptName.trim() !== ''
-  );
+  const candidates: FreeTextSystemFontAnnotation[] = [];
+  const autoCandidates = new Map<FreeTextSystemFontAnnotation, string[]>();
+  for (const a of annotations) {
+    if (a.fontPostScriptName.trim() !== '') {
+      candidates.push(a);
+      continue;
+    }
+    if (!needsFontEmbedding(a.contents)) continue;
+    autoCandidates.set(a, await pickFontsForText(a.contents));
+    if (autoCandidates.get(a)?.length) candidates.push(a);
+  }
   if (candidates.length === 0) return bytes;
 
   const doc = await PDFDocument.load(bytes, {
@@ -404,7 +466,8 @@ export async function embedFreeTextSystemFonts(
 
   const fontCache = new Map<string, PDFFont | null>();
   const resolveFont = async (
-    postscriptName: string
+    postscriptName: string,
+    sampleText: string
   ): Promise<PDFFont | null> => {
     const cached = fontCache.get(postscriptName);
     if (cached !== undefined) return cached;
@@ -413,10 +476,29 @@ export async function embedFreeTextSystemFonts(
       fontCache.set(postscriptName, null);
       return null;
     }
+    const customName = `${subsetPrefix(postscriptName)}+${postscriptName}`;
+    try {
+      const probe = await PDFDocument.create();
+      probe.registerFontkit(fontkit);
+      const probeFont = await probe.embedFont(fontBytes, {
+        subset: true,
+        customName,
+      });
+      probe.addPage([200, 100]).drawText(sampleText.slice(0, 64), {
+        x: 4,
+        y: 40,
+        size: 12,
+        font: probeFont,
+      });
+      await probe.save();
+    } catch {
+      fontCache.set(postscriptName, null);
+      return null;
+    }
     try {
       const font = await doc.embedFont(fontBytes, {
         subset: true,
-        customName: `${subsetPrefix(postscriptName)}+${postscriptName}`,
+        customName,
       });
       fontCache.set(postscriptName, font);
       return font;
@@ -429,8 +511,17 @@ export async function embedFreeTextSystemFonts(
   let touched = false;
   for (const annot of candidates) {
     try {
-      const font = await resolveFont(annot.fontPostScriptName);
-      if (!font) continue;
+      const names = autoCandidates.get(annot) ?? [annot.fontPostScriptName];
+      let font: PDFFont | null = null;
+      let usedName = '';
+      for (const name of names) {
+        font = await resolveFont(name, annot.contents);
+        if (font) {
+          usedName = name;
+          break;
+        }
+      }
+      if (!font || !usedName) continue;
       const dict = findFreeTextDict(doc, annot.pageIndex, annot.id);
       if (!dict) continue;
       bakeAppearance(doc, dict, annot, font);
@@ -441,5 +532,9 @@ export async function embedFreeTextSystemFonts(
   }
 
   if (!touched) return bytes;
-  return doc.save();
+  try {
+    return await doc.save();
+  } catch {
+    return bytes;
+  }
 }

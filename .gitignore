@@ -51,3 +51,6 @@ libreoffice-wasm-package
 # test 
 dist-test
 test
+# Sibling checkouts of the engine/viewer forks
+bentopdf-pdfium-viewer/
+bentopdf-pymupdf-wasm/

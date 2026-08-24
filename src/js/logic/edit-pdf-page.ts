@@ -6,9 +6,10 @@ import { makeUniqueFileKey } from '../utils/deduplicate-filename.js';
 import { batchDecryptIfNeeded } from '../utils/password-prompt.js';
 import { getEditorDisabledCategories } from '../utils/disabled-tools.js';
 import { editorFontFallback } from '../config/editor-fonts.js';
+import { needsFontEmbedding } from '../utils/freetext-script.js';
 
 const embedPdfWasmUrl = new URL(
-  'bentopdf-viewer/dist/pdfium.wasm',
+  'bentopdf-pdfium/editcore.wasm',
   import.meta.url
 ).href;
 
@@ -21,7 +22,7 @@ import type {
 
 const FREETEXT_SUBTYPE = 3;
 
-function collectSystemFontFreeTexts(
+function collectAllFreeTexts(
   annotationPlugin: AnnotationPluginLite | null
 ): FreeTextSystemFontAnnotation[] {
   if (!annotationPlugin) return [];
@@ -32,9 +33,7 @@ function collectSystemFontFreeTexts(
       const obj = tracked.object;
       if (obj.type !== FREETEXT_SUBTYPE) continue;
       if (obj.intent === 'FreeTextCallout') continue;
-      if (!obj.fontPostScriptName || !obj.fontPostScriptName.trim()) continue;
       if (!obj.id || obj.pageIndex == null || !obj.rect) continue;
-      if ((obj.rotation ?? 0) !== 0) continue;
       out.push({
         id: obj.id,
         pageIndex: obj.pageIndex,
@@ -46,7 +45,8 @@ function collectSystemFontFreeTexts(
         opacity: obj.opacity ?? 1,
         backgroundColor: obj.color ?? obj.backgroundColor,
         rect: obj.rect,
-        fontPostScriptName: obj.fontPostScriptName,
+        fontPostScriptName: obj.fontPostScriptName ?? '',
+        rotation: obj.rotation ?? 0,
       });
     }
     return out;
@@ -269,7 +269,26 @@ async function handleFiles(files: FileList) {
           } catch {
             annotationPlugin = null;
           }
-          const customFontAnnots = collectSystemFontFreeTexts(annotationPlugin);
+          const allFreeTexts = collectAllFreeTexts(annotationPlugin);
+          let pending = allFreeTexts;
+          if (pending.length > 0) {
+            try {
+              const { flattenFreeTextToPageText } =
+                await import('../utils/freetext-flatten.js');
+              const res = await flattenFreeTextToPageText(outBytes, pending);
+              if (res.flattened > 0) {
+                outBytes = res.bytes;
+                pending = [];
+              }
+            } catch (err) {
+              console.error('Flatten pass failed:', err);
+            }
+          }
+          const customFontAnnots = pending.filter(
+            (a) =>
+              a.fontPostScriptName.trim() !== '' ||
+              needsFontEmbedding(a.contents)
+          );
           if (customFontAnnots.length > 0) {
             try {
               const { embedFreeTextSystemFonts } =
