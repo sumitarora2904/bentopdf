@@ -220,6 +220,11 @@
   pointer-events: none;
 }
 
+#text-editor-app .para-layer {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
 #text-editor-app .para-box {
   position: absolute;
   border: 1px dashed rgba(156, 163, 175, 0.85);

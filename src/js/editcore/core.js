@@ -5,6 +5,7 @@ const createEditCore = createEngineModule;
 const devBust = '';
 
 import { applyType3LeftoverSurgery } from './type3surgery.js';
+import { probePdfBytes } from './shadingsurgery.js';
 
 const RUN_SIZE = 60;
 const FMT_SIZE = 36;
@@ -18,7 +19,23 @@ export const OBJ = {
   FORM: 5,
 };
 
+const sfntCoverMemo = new WeakMap();
+
 export function sfntCovers(bytes, cps) {
+  let per = sfntCoverMemo.get(bytes);
+  if (!per) {
+    per = new Map();
+    sfntCoverMemo.set(bytes, per);
+  }
+  const key = cps.length ? cps.join(',') : '';
+  const hit = per.get(key);
+  if (hit !== undefined) return hit;
+  const computed = sfntCoversUncached(bytes, cps);
+  if (per.size < 512) per.set(key, computed);
+  return computed;
+}
+
+function sfntCoversUncached(bytes, cps) {
   try {
     const u16 = (o) => (bytes[o] << 8) | bytes[o + 1];
     const u32 = (o) =>
@@ -408,6 +425,8 @@ export class PdfEngine {
   }
 
   static disambiguateSubsetFonts(bytes) {
+    const probe = probePdfBytes(bytes);
+    if (!probe.subsetFont || !probe.form) return bytes;
     const s = new TextDecoder('latin1').decode(bytes);
     const fonts = [];
     for (const m of s.matchAll(/(\d+)\s+0\s+obj\b/g)) {
@@ -541,11 +560,7 @@ export class PdfEngine {
     if (!this._providerPtr) this._providerPtr = this._makeProvider();
     this.session = M._ec_session_create(doc, this._providerPtr, 0);
     if (M._ec_set_flatten_forms) {
-      const usesPattern = /\/Pattern\b/.test(
-        new TextDecoder('latin1').decode(
-          bytes.subarray(0, Math.min(bytes.length, 8 << 20))
-        )
-      );
+      const usesPattern = probePdfBytes(bytes).pattern;
       this._usesPattern = usesPattern;
       M._ec_set_flatten_forms(this.session, usesPattern ? 0 : 1);
     }
@@ -563,13 +578,7 @@ export class PdfEngine {
     if (!_reentrant) {
       const info = this.documentInfo();
       this.security = info;
-      if (info.encrypted && !info.signatures) {
-        const clear = this.save();
-        if (clear && clear.length) {
-          this.open(clear, null, true);
-          this.security = { ...info, strippedOnLoad: true };
-        }
-      }
+      this._encrypted = !!info.encrypted && !info.signatures;
     }
   }
 
@@ -1286,14 +1295,13 @@ export class PdfEngine {
 
   _rawBounds(handle) {
     const M = this.M;
-    const p = M._malloc(16);
+    const p = (this._boundsScratch ||= M._malloc(16));
     const ok = M._FPDFPageObj_GetBounds(handle, p, p + 4, p + 8, p + 12);
+    if (!ok) return null;
     const l = M.HEAPF32[p >> 2],
       b = M.HEAPF32[(p + 4) >> 2];
     const r = M.HEAPF32[(p + 8) >> 2],
       t = M.HEAPF32[(p + 12) >> 2];
-    M._free(p);
-    if (!ok) return null;
     return { x: l, y: b, w: r - l, h: t - b };
   }
 
@@ -1855,7 +1863,10 @@ export class PdfEngine {
     }
     const buf = M._FPDFBitmap_GetBuffer(bmp);
     const stride = M._FPDFBitmap_GetStride(bmp);
-    const out = new Uint8ClampedArray(w * h * 4);
+    const need = w * h * 4;
+    if (this._renderScratch?.length !== need)
+      this._renderScratch = new Uint8ClampedArray(need);
+    const out = this._renderScratch;
     if (stride === w * 4) {
       out.set(M.HEAPU8.subarray(buf, buf + w * h * 4));
     } else {
@@ -1899,7 +1910,8 @@ export class PdfEngine {
       !this._splicePlans?.length ||
       !this._originalBytes ||
       this._reencoded?.size ||
-      this._normalizedBytes
+      this._normalizedBytes ||
+      this._encrypted
     )
       return this.save(opts);
     try {
@@ -1932,7 +1944,8 @@ export class PdfEngine {
     const M = this.M;
     const sizePtr = M._malloc(4);
     const hasT3 = this._t3seg && Object.keys(this._t3seg).length > 0;
-    const incremental = (opts && opts.incremental) || hasT3;
+    const incremental =
+      !this._encrypted && ((opts && opts.incremental) || hasT3);
     const outPtr = M._ec_save_document(this.doc, incremental ? 1 : 2, sizePtr);
     const size = M.HEAPU32[sizePtr >> 2];
     M._free(sizePtr);
@@ -1960,4 +1973,45 @@ export class PdfEngine {
     }
     return bytes;
   }
+}
+
+const OBJECT_MUTATORS = [
+  'open',
+  'reopen',
+  'loadPage',
+  'buildModel',
+  'generateContent',
+  'normalizeFontsForEdit',
+  'addParagraph',
+  'commitParagraph',
+  'deleteParagraph',
+  'moveParagraph',
+  'resizeParagraph',
+  'duplicateParagraph',
+  'synthRunFont',
+  'translateObject',
+  'transformObjectAboutCenter',
+  'rotateObject',
+  'rotateObjectsAbout',
+  'flipObject',
+  'scaleObject',
+  'arrangeObject',
+  'removeObject',
+  'replaceImage',
+  'insertImage',
+  'duplicateImage',
+  'setPathStroke',
+  'setObjectFill',
+  'tagObject',
+  'historyUndo',
+  'historyRedo',
+];
+
+for (const name of OBJECT_MUTATORS) {
+  const original = PdfEngine.prototype[name];
+  if (typeof original !== 'function') continue;
+  PdfEngine.prototype[name] = function wrapped(...args) {
+    this._objEpoch = (this._objEpoch || 0) + 1;
+    return original.apply(this, args);
+  };
 }

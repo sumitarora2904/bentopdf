@@ -422,7 +422,14 @@ export function setupFormatDock(): void {
     markActive();
   };
 
+  const dismissKeyboard = (): void => {
+    if (!window.matchMedia('(pointer: coarse)').matches) return;
+    const a = document.activeElement;
+    if (a instanceof HTMLElement && a.isContentEditable) a.blur();
+  };
+
   const openSec = (spec: SectionSpec) => {
+    dismissKeyboard();
     const isOpen = panel.classList.contains('open');
     if (isOpen && activeSec === spec.id) {
       closePanel();
@@ -490,6 +497,7 @@ export function setupFormatDock(): void {
     }
   };
   const openSheet = () => {
+    dismissKeyboard();
     rebuildFonts();
     sheetOpen = true;
     dim.classList.add('show');
@@ -604,6 +612,15 @@ export function setupFormatDock(): void {
   const buildRail = () => {
     const mode = computeMode();
     chipsWrap.replaceChildren();
+    if (mode !== 'idle') {
+      chipsWrap.appendChild(
+        toolChip('done', 'ph-check', 'Done — back to tools', () => {
+          closePanel();
+          closeSheet();
+          editBtn.click();
+        })
+      );
+    }
     if (mode === 'text') {
       for (const s of TEXT_SECTIONS) {
         chipsWrap.appendChild(secChip(s));

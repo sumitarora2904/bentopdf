@@ -1,3 +1,87 @@
+export const bytesHave = (u8, needle) => {
+  const n = needle.length;
+  const end = u8.length;
+  if (!n || end < n) return false;
+  const first = needle.charCodeAt(0);
+  outer: for (let i = 0; i + n <= end; i++) {
+    if (u8[i] !== first) continue;
+    for (let j = 1; j < n; j++) {
+      if (u8[i + j] !== needle.charCodeAt(j)) continue outer;
+    }
+    return true;
+  }
+  return false;
+};
+
+const PROBE_NEEDLES = [
+  ['pattern', '/Pattern'],
+  ['shading', '/Shading'],
+  ['type3', '/Type3'],
+  ['form', '/Form'],
+  ['quartz', 'Quartz PDFContext'],
+  ['objStm', '/ObjStm'],
+];
+
+const probeMemo = new WeakMap();
+
+export const probePdfBytes = (u8) => {
+  const cached = probeMemo.get(u8);
+  if (cached) return cached;
+  const out = {
+    pattern: false,
+    shading: false,
+    type3: false,
+    form: false,
+    quartz: false,
+    objStm: false,
+    contentsArray: false,
+    subsetFont: false,
+  };
+  const end = u8.length;
+  const match = (at, text) => {
+    if (at + text.length > end) return false;
+    for (let j = 1; j < text.length; j++) {
+      if (u8[at + j] !== text.charCodeAt(j)) return false;
+    }
+    return true;
+  };
+  const skipWs = (at) => {
+    while (
+      at < end &&
+      (u8[at] === 32 || u8[at] === 10 || u8[at] === 13 || u8[at] === 9)
+    )
+      at++;
+    return at;
+  };
+  for (let i = 0; i < end; i++) {
+    const c = u8[i];
+    if (c === 81) {
+      if (!out.quartz && match(i, 'Quartz PDFContext')) out.quartz = true;
+      continue;
+    }
+    if (c !== 47) continue;
+    for (const [key, text] of PROBE_NEEDLES) {
+      if (!out[key] && match(i, text)) out[key] = true;
+    }
+    if (!out.contentsArray && match(i, '/Contents')) {
+      if (u8[skipWs(i + 9)] === 91) out.contentsArray = true;
+    }
+    if (!out.subsetFont && match(i, '/BaseFont')) {
+      let k = skipWs(i + 9);
+      if (u8[k] === 47) {
+        k++;
+        let upper = k + 6 <= end;
+        for (let t = 0; upper && t < 6; t++) {
+          if (u8[k + t] < 65 || u8[k + t] > 90) upper = false;
+        }
+        if (upper && u8[k + 6] === 43) out.subsetFont = true;
+      }
+    }
+  }
+  probeMemo.set(u8, out);
+  return out;
+};
+
 const latinMemo = new WeakMap();
 export const latin = (u8) => {
   const hit = latinMemo.get(u8);
@@ -13,7 +97,18 @@ export const latin = (u8) => {
   return s;
 };
 
+const parsePdfMemo = new Map();
+
 export const parsePdf = (src) => {
+  const hit = parsePdfMemo.get(src);
+  if (hit !== undefined) return hit;
+  const built = parsePdfUncached(src);
+  if (parsePdfMemo.size > 4) parsePdfMemo.clear();
+  parsePdfMemo.set(src, built);
+  return built;
+};
+
+const parsePdfUncached = (src) => {
   const objAt = new Map();
   for (const m of src.matchAll(/(\d+)\s+0\s+obj\b/g)) {
     if (m.index > 0 && src[m.index - 1] >= '0' && src[m.index - 1] <= '9')
@@ -139,9 +234,19 @@ const objStmIndex = async (bytes, src) => {
   return out;
 };
 
+const objStmMemo = new WeakMap();
+
+const objStmIndexCached = async (bytes, src) => {
+  const hit = objStmMemo.get(bytes);
+  if (hit) return hit;
+  const built = await objStmIndex(bytes, src);
+  objStmMemo.set(bytes, built);
+  return built;
+};
+
 export const withObjStm = async (bytes, src, op) => {
   if (!op) return op;
-  const idx = await objStmIndex(bytes, src);
+  const idx = await objStmIndexCached(bytes, src);
   if (!idx.size) return op;
   const base = op.objBody;
   const objBody = (num) =>
@@ -554,6 +659,8 @@ export async function applyShadingSurgery(savedBytes, originalBytes, pages) {
 
 export async function pageHasPatternFill(originalBytes, pageIndex) {
   try {
+    const probe = probePdfBytes(originalBytes);
+    if (!probe.pattern && !probe.objStm) return false;
     const orig = latin(originalBytes);
     const op = await withObjStm(originalBytes, orig, parsePdf(orig));
     if (!op) return false;
@@ -585,6 +692,8 @@ export const dictAt = (body, at) => {
 };
 
 export async function protectPatternArtwork(bytes) {
+  const probe = probePdfBytes(bytes);
+  if (!probe.pattern && !probe.shading && !probe.objStm) return null;
   const src = latin(bytes);
   const op = await withObjStm(bytes, src, parsePdf(src));
   if (!op) return null;

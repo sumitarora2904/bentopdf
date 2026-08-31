@@ -4,6 +4,7 @@ import {
   streamData,
   withObjStm,
   dictAt,
+  probePdfBytes,
 } from './shadingsurgery.js';
 
 const mul = (m, n) => [
@@ -274,6 +275,7 @@ function pageT3Fonts(op, pgBody) {
 }
 
 export async function protectType3Text(bytes) {
+  if (!probePdfBytes(bytes).type3) return null;
   const src = latin(bytes);
   if (!/\/Subtype\s*\/Type3\b/.test(src)) return null;
   const op = await withObjStm(bytes, src, parsePdf(src));
@@ -398,6 +400,7 @@ export async function protectType3Text(bytes) {
 }
 
 export async function protectFragileText(bytes) {
+  if (!probePdfBytes(bytes).quartz) return null;
   const src = latin(bytes);
   if (!/Quartz PDFContext/.test(src)) return null;
   if (!/\/BaseFont\s*\/[A-Z]{6}\+/.test(src)) return null;
@@ -518,6 +521,8 @@ export async function protectFragileText(bytes) {
 }
 
 export async function consolidateContentArrays(bytes) {
+  if (!probePdfBytes(bytes).contentsArray && bytes.length > 4 << 20)
+    return null;
   const src = latin(bytes);
   const rawHasArrays = /\/Contents\s*\[/.test(src);
   if (!rawHasArrays && bytes.length > 4 << 20) return null;

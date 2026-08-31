@@ -43,6 +43,22 @@ const state = {
   redo: [],
 };
 const MAX_UNDO = 20;
+const MAX_UNDO_BYTES = 256 << 20;
+const INCREMENTAL_SNAPSHOT_LIMIT = 12 << 20;
+
+function pushUndo(entry) {
+  state.undo.push(entry);
+  if (state.undo.length > MAX_UNDO) state.undo.shift();
+  let held = 0;
+  for (let i = state.undo.length - 1; i >= 0; i--) {
+    held += state.undo[i].bytes?.length || 0;
+    if (held > MAX_UNDO_BYTES && i > 0) {
+      state.undo.splice(0, i);
+      break;
+    }
+  }
+  state.redo = [];
+}
 
 const WEB_FALLBACK = (family, kind) => {
   if (kind === 'mono') return `"${family}", 'Courier New', monospace`;
@@ -3003,21 +3019,33 @@ function renderPage() {
   }
   const img = eng.renderPage(state.zoom * devicePixelRatio, hide);
   const canvas = $('page');
-  canvas.width = img.width;
-  canvas.height = img.height;
-  canvas.style.width = eng.pageWidth * state.zoom + 'px';
-  canvas.style.height = eng.pageHeight * state.zoom + 'px';
+  if (canvas.width !== img.width || canvas.height !== img.height) {
+    canvas.width = img.width;
+    canvas.height = img.height;
+  }
+  const cssW = eng.pageWidth * state.zoom + 'px';
+  const cssH = eng.pageHeight * state.zoom + 'px';
+  if (canvas.style.width !== cssW) canvas.style.width = cssW;
+  if (canvas.style.height !== cssH) canvas.style.height = cssH;
   const ctx = canvas.getContext('2d');
   ctx.putImageData(new ImageData(img.data, img.width, img.height), 0, 0);
-  $('overlay').style.width = canvas.style.width;
-  $('overlay').style.height = canvas.style.height;
+  const overlay = $('overlay');
+  if (overlay.style.width !== cssW) overlay.style.width = cssW;
+  if (overlay.style.height !== cssH) overlay.style.height = cssH;
   drawOverlay();
   drawRulers();
 }
 
+let scanningPages = false;
+
 function refreshModel() {
   engineStepEnd();
   state.paragraphs = P().buildModel();
+  if (scanningPages) return;
+  refreshPageExtras();
+}
+
+function refreshPageExtras() {
   prewarmDocFonts();
   const invisibles = state.paragraphs.filter((p) => p.invisible).length;
   if (
@@ -3078,15 +3106,21 @@ function blockPlacement(para) {
 
 function drawOverlay() {
   const ov = $('overlay');
+  const keepParaLayer = inPreviewPass && !!ov.querySelector('.para-layer');
   [...ov.children].forEach((c) => {
-    if (c !== state.editing?.el) c.remove();
+    if (c === state.editing?.el) return;
+    if (keepParaLayer && c.classList.contains('para-layer')) return;
+    c.remove();
   });
 
   const selPara =
     state.selection?.kind === 'para' ? state.selection.para : null;
   const editingId = state.editing?.para?.id;
 
-  if (state.tool === 'edit' && scopeAllowsPara()) {
+  if (state.tool === 'edit' && scopeAllowsPara() && !keepParaLayer) {
+    const layer = document.createElement('div');
+    layer.className = 'para-layer';
+    ov.appendChild(layer);
     const blocks = new Map();
     for (const para of state.paragraphs) {
       if (!para.blockId || para.invisible || !para.editable) continue;
@@ -3117,7 +3151,7 @@ function drawOverlay() {
         BOX_PAD
       );
       div.style.pointerEvents = 'none';
-      ov.appendChild(div);
+      layer.appendChild(div);
     }
     for (const para of state.paragraphs) {
       if (para.id === editingId) continue;
@@ -3138,14 +3172,14 @@ function drawOverlay() {
         });
         attachParaLongPress(div, para);
       }
-      ov.appendChild(div);
+      layer.appendChild(div);
     }
   }
 
-  if (state.editing?.para) {
+  if (state.editing?.para || state.editing?.newGeom) {
     const wrap = ov.querySelector('.editor');
     if (wrap) {
-      const blk = state.editing.para.blockId
+      const blk = state.editing.para?.blockId
         ? blockPlacement(state.editing.para)
         : null;
       const w = blk ? blk.w : wrap.offsetWidth;
@@ -3383,7 +3417,7 @@ function snapshotEdit(label, para) {
     return;
   }
   engineStepBegin(label || 'edit');
-  state.undo.push({
+  pushUndo({
     engine: true,
     epoch: state.docEpoch,
     page: P().pageIndex,
@@ -3395,8 +3429,6 @@ function snapshotEdit(label, para) {
           .slice(0, 18)
       : '',
   });
-  if (state.undo.length > MAX_UNDO) state.undo.shift();
-  state.redo = [];
   syncHistoryPins();
 }
 
@@ -3404,9 +3436,7 @@ function snapshot() {
   if (window.__undoTrace) (window.__ledger ||= []).push('push:BYTES');
   engineStepEnd();
   if (!state.dirty && P()._originalBytes) {
-    state.undo.push({ bytes: P()._originalBytes, page: P().pageIndex });
-    if (state.undo.length > MAX_UNDO) state.undo.shift();
-    state.redo = [];
+    pushUndo({ bytes: P()._originalBytes, page: P().pageIndex });
     return;
   }
   P().normalizeFontsForEdit();
@@ -3416,12 +3446,13 @@ function snapshot() {
     !(P()._spliceOk !== false && P()._splicePlans?.length)
   )
     P().generateContent();
-  const bytes = P().save({ incremental: true });
-  if (bytes) {
-    state.undo.push({ bytes, page: P().pageIndex });
-    if (state.undo.length > MAX_UNDO) state.undo.shift();
-    state.redo = [];
-  }
+  const bytes = P().save({ incremental: snapshotPrefersIncremental() });
+  if (bytes) pushUndo({ bytes, page: P().pageIndex });
+}
+
+function snapshotPrefersIncremental() {
+  const size = P()._originalBytes?.length || 0;
+  return size > 0 && size <= INCREMENTAL_SNAPSHOT_LIMIT;
 }
 function restore(from, to) {
   if (window.__undoTrace)
@@ -4873,6 +4904,13 @@ function attachParaLongPress(div, para) {
               clientY: t1 ? t1.clientY : sy,
             })
           );
+        } else if (ev.type === 'touchend') {
+          ev.preventDefault();
+          const t1 = ev.changedTouches[0];
+          beginEdit(para, {
+            x: t1 ? t1.clientX : sx,
+            y: t1 ? t1.clientY : sy,
+          });
         }
         cleanup();
       };
@@ -5442,8 +5480,9 @@ function applyLockedGeom(es, pv) {
 function beginEdit(para, caret) {
   openEditor({ para }, caret);
 }
-function beginNewTextBox(x, yTop, size, caret) {
-  openEditor({ newGeom: { x, yTop, width: 300, size } }, caret);
+function beginNewTextBox(x, yTop, size, caret, width) {
+  const w = Number.isFinite(width) && width >= 30 ? width : 300;
+  openEditor({ newGeom: { x, yTop, width: w, size } }, caret);
 }
 
 function runSpan(run, srcIndex) {
@@ -6469,18 +6508,38 @@ function scopeAllowsObj(type) {
   return false;
 }
 
-function hitTestObject(px, py) {
+let objectIndexCache = null;
+
+function objectIndex() {
   const eng = P();
-  let best = null;
-  for (let i = 0; i < eng.objectCount(); i++) {
+  const epoch = eng._objEpoch || 0;
+  if (
+    objectIndexCache &&
+    objectIndexCache.epoch === epoch &&
+    objectIndexCache.page === eng.pageIndex
+  )
+    return objectIndexCache.items;
+  const items = [];
+  const n = eng.objectCount();
+  for (let i = 0; i < n; i++) {
     const o = eng.objectAt(i);
-    if (!o || !scopeAllowsObj(o.type)) continue;
+    if (!o) continue;
     const b = eng.objectBounds(o.handle);
     if (!b) continue;
-    if (px >= b.x && px <= b.x + b.w && py >= b.y && py <= b.y + b.h)
-      best = { ...o, bounds: b };
+    items.push({ handle: o.handle, index: i, type: o.type, bounds: b });
   }
-  return best;
+  objectIndexCache = { epoch, page: eng.pageIndex, items };
+  return items;
+}
+
+function hitTestObject(px, py) {
+  let best = null;
+  for (const o of objectIndex()) {
+    if (!scopeAllowsObj(o.type)) continue;
+    const b = o.bounds;
+    if (px >= b.x && px <= b.x + b.w && py >= b.y && py <= b.y + b.h) best = o;
+  }
+  return best ? { ...best } : null;
 }
 
 function hitTestParagraph(px, py) {
@@ -7008,6 +7067,81 @@ function stagePointHandlers() {
     true
   );
 
+  ov.addEventListener(
+    'touchstart',
+    (e) => {
+      if (e.touches.length !== 1) return;
+      const t0 = e.touches[0];
+      const el = document
+        .elementFromPoint(t0.clientX, t0.clientY)
+        ?.closest?.(
+          '.obj-handle, .rot-handle, .para-handle, .edit-move, .sel-para, .obj-box'
+        );
+      if (!el) return;
+      e.preventDefault();
+      e.stopPropagation();
+      const sx = t0.clientX;
+      const sy = t0.clientY;
+      const tapPara =
+        el.classList.contains('sel-para') && state.selection?.kind === 'para'
+          ? state.selection.para
+          : null;
+      let fired = false;
+      const fire = () => {
+        fired = true;
+        el.dispatchEvent(
+          new MouseEvent('mousedown', {
+            bubbles: true,
+            cancelable: true,
+            clientX: sx,
+            clientY: sy,
+            buttons: 1,
+          })
+        );
+      };
+      if (!tapPara) fire();
+      const move = (ev) => {
+        const t1 = ev.touches[0];
+        if (!t1) return;
+        ev.preventDefault();
+        if (!fired) {
+          if (Math.hypot(t1.clientX - sx, t1.clientY - sy) <= 12) return;
+          fire();
+        }
+        window.dispatchEvent(
+          new MouseEvent('mousemove', {
+            clientX: t1.clientX,
+            clientY: t1.clientY,
+            buttons: 1,
+          })
+        );
+      };
+      const end = (ev) => {
+        const t1 = ev.changedTouches?.[0];
+        if (fired) {
+          window.dispatchEvent(
+            new MouseEvent('mouseup', {
+              clientX: t1 ? t1.clientX : sx,
+              clientY: t1 ? t1.clientY : sy,
+            })
+          );
+        } else if (ev.type === 'touchend') {
+          beginEdit(tapPara, {
+            x: t1 ? t1.clientX : sx,
+            y: t1 ? t1.clientY : sy,
+          });
+        }
+        ov.removeEventListener('touchmove', move);
+        ov.removeEventListener('touchend', end);
+        ov.removeEventListener('touchcancel', end);
+      };
+      ov.addEventListener('touchmove', move, { passive: false });
+      ov.addEventListener('touchend', end);
+      ov.addEventListener('touchcancel', end);
+    },
+    { passive: false }
+  );
+
   ov.addEventListener('mousedown', (e) => {
     const objH = e.target.closest?.(
       '.obj-handle:not(.para-handle):not(.rot-handle)'
@@ -7102,13 +7236,19 @@ function stagePointHandlers() {
         lastDx: 0,
         lastDy: 0,
       };
-    } else if (parH && state.editing?.para) {
+    } else if (parH && (state.editing?.para || state.editing?.newGeom)) {
       e.stopPropagation();
+      const g0 = state.editing.para
+        ? { ...state.editing.para.box }
+        : {
+            x: state.editing.newGeom.x,
+            w: state.editing.newGeom.width,
+          };
       drag = {
         mode: 'ewrap',
         edge: parH.dataset.ewrap,
         para: state.editing.para,
-        b0: { ...state.editing.para.box },
+        b0: g0,
         startPx: px,
         moved: false,
       };
@@ -7171,11 +7311,83 @@ function stagePointHandlers() {
     }
   });
 
+  canvas.addEventListener(
+    'touchstart',
+    (e) => {
+      if (e.touches.length !== 1 || state.editing) return;
+      const sx = e.touches[0].clientX;
+      const sy = e.touches[0].clientY;
+      let fired = false;
+      const slop = (ev) => {
+        const t1 = ev.touches[0];
+        if (fired || !t1) return;
+        if (Math.hypot(t1.clientX - sx, t1.clientY - sy) > 12) cleanup();
+      };
+      const drive = (ev) => {
+        if (!fired) return;
+        const t1 = ev.touches[0];
+        if (!t1) return;
+        ev.preventDefault();
+        window.dispatchEvent(
+          new MouseEvent('mousemove', {
+            clientX: t1.clientX,
+            clientY: t1.clientY,
+            buttons: 1,
+          })
+        );
+      };
+      const finish = (ev) => {
+        if (fired) {
+          const t1 = ev.changedTouches?.[0];
+          window.dispatchEvent(
+            new MouseEvent('mouseup', {
+              clientX: t1 ? t1.clientX : sx,
+              clientY: t1 ? t1.clientY : sy,
+            })
+          );
+        }
+        cleanup();
+      };
+      const timer = setTimeout(() => {
+        fired = true;
+        navigator.vibrate?.(12);
+        canvas.dispatchEvent(
+          new MouseEvent('mousedown', {
+            bubbles: true,
+            cancelable: true,
+            clientX: sx,
+            clientY: sy,
+            buttons: 1,
+          })
+        );
+      }, 450);
+      const cleanup = () => {
+        clearTimeout(timer);
+        canvas.removeEventListener('touchmove', slop);
+        canvas.removeEventListener('touchmove', drive);
+        canvas.removeEventListener('touchend', finish);
+        canvas.removeEventListener('touchcancel', finish);
+      };
+      canvas.addEventListener('touchmove', slop, { passive: true });
+      canvas.addEventListener('touchmove', drive, { passive: false });
+      canvas.addEventListener('touchend', finish);
+      canvas.addEventListener('touchcancel', finish);
+    },
+    { passive: true }
+  );
+
   canvas.addEventListener('mousedown', (e) => {
     if (state.editing) return;
     const { px, py } = toPage(e);
     if (state.tool === 'addText') {
-      beginNewTextBox(px, py, 14, { x: e.clientX, y: e.clientY });
+      drag = {
+        mode: 'newbox',
+        startPx: px,
+        startPy: py,
+        moved: false,
+        clientX: e.clientX,
+        clientY: e.clientY,
+      };
       return;
     }
     const paraStrong = hitTestParagraphStrong(px, py);
@@ -7370,7 +7582,8 @@ function stagePointHandlers() {
       }
       const wrap = state.editing?.el;
       if (wrap) {
-        if (para && !para.rotation) wrap.style.left = nx * state.zoom + 'px';
+        if ((para && !para.rotation) || state.editing?.newGeom)
+          wrap.style.left = nx * state.zoom + 'px';
         wrap.style.minWidth = nw * state.zoom + 'px';
         wrap.style.width = nw * state.zoom + 'px';
         drag.nw = nw;
@@ -7466,7 +7679,7 @@ function stagePointHandlers() {
         const base = -(drag.para.rotation || 0);
         ch.style.transform = `rotate(${base - (drag.delta * 180) / Math.PI}deg)`;
       }
-    } else if (drag.mode === 'marquee') {
+    } else if (drag.mode === 'newbox' || drag.mode === 'marquee') {
       drag.moved = true;
       drag.lastPx = px;
       drag.lastPy = py;
@@ -7614,6 +7827,16 @@ function stagePointHandlers() {
               `${n} block${n === 1 ? '' : 's'} — ⌘C to copy.`
           );
         }
+      } else if (drag.mode === 'newbox') {
+        drag.el?.remove();
+        const x0 = Math.min(drag.startPx, drag.lastPx ?? drag.startPx);
+        const x1 = Math.max(drag.startPx, drag.lastPx ?? drag.startPx);
+        const yTop = Math.max(drag.startPy, drag.lastPy ?? drag.startPy);
+        const w = x1 - x0;
+        const d0 = drag;
+        drag = null;
+        beginNewTextBox(x0, yTop, 14, { x: d0.clientX, y: d0.clientY }, w);
+        return;
       } else if (drag.mode === 'marquee') {
         drag.el?.remove();
         const x0 = Math.min(drag.startPx, drag.lastPx ?? drag.startPx);
@@ -7635,6 +7858,11 @@ function stagePointHandlers() {
             items.push({ t: 'obj', handle: o.handle, type: o.type, bounds: b });
         }
         setMultiSelection(items);
+      } else if (drag.mode === 'ewrap' && state.editing?.newGeom) {
+        const g = state.editing.newGeom;
+        g.width = drag.nw ?? drag.b0.w;
+        if (drag.edge === 'w' && drag.nx != null) g.x = drag.nx;
+        drawOverlay();
       } else if (drag.mode === 'ewrap' && state.editing?.para) {
         const e2 = state.editing;
         const runs = parseEditor(e2.editable, e2.para.runs);
@@ -7705,6 +7933,15 @@ function stagePointHandlers() {
         state.selection = null;
         beginEdit(paraOver, { x: drag.clientX, y: drag.clientY });
       }
+    } else if (drag && !drag.moved && drag.mode === 'newbox') {
+      drag.el?.remove();
+      const d0 = drag;
+      drag = null;
+      beginNewTextBox(d0.startPx, d0.startPy, 14, {
+        x: d0.clientX,
+        y: d0.clientY,
+      });
+      return;
     } else if (drag && !drag.moved && drag.mode === 'marquee') {
       drag.el?.remove();
       selectObject(null);
@@ -7858,6 +8095,16 @@ function pageMatches(needle, opts) {
 }
 
 function findStep(needle, dir) {
+  scanningPages = true;
+  try {
+    return findStepScan(needle, dir);
+  } finally {
+    scanningPages = false;
+    refreshPageExtras();
+  }
+}
+
+function findStepScan(needle, dir) {
   const eng = P();
   const opts = findOptions();
   const key = needle + ' ' + JSON.stringify(opts);
@@ -7905,6 +8152,16 @@ function findStep(needle, dir) {
 const findNext = (needle) => findStep(needle, 1);
 
 function replaceAll(needle, replacement) {
+  scanningPages = true;
+  try {
+    return replaceAllScan(needle, replacement);
+  } finally {
+    scanningPages = false;
+    refreshPageExtras();
+  }
+}
+
+function replaceAllScan(needle, replacement) {
   const eng = P();
   const opts = findOptions();
   let total = 0;
@@ -8480,12 +8737,11 @@ function collectSmartTargets(opts = {}) {
     if (q.rotation || opts.skipPara?.has(q.id)) continue;
     t.push({ x: q.box.x, y: q.box.top - q.box.h, w: q.box.w, h: q.box.h });
   }
-  const n = eng.objectCount();
-  for (let i = 0; i < n && t.length < 400; i++) {
-    const o = eng.objectAt(i);
-    if (!o || o.type === 1 || opts.skipObj?.has(o.handle)) continue;
-    const b = eng.objectBounds(o.handle);
-    if (b && b.w > 2 && b.h > 2) t.push(b);
+  for (const o of objectIndex()) {
+    if (t.length >= 400) break;
+    if (o.type === 1 || opts.skipObj?.has(o.handle)) continue;
+    const b = o.bounds;
+    if (b.w > 2 && b.h > 2) t.push(b);
   }
   return t;
 }
@@ -8903,11 +9159,24 @@ function setTool(tool) {
   updateChrome();
 }
 
+let zoomFrame = 0;
+let zoomPending = false;
 function setZoom(z) {
   endEdit(true);
   state.zoom = Math.min(6, Math.max(0.2, z));
+  if (zoomFrame) {
+    zoomPending = true;
+    return;
+  }
   renderPage();
   updateChrome();
+  zoomFrame = requestAnimationFrame(() => {
+    zoomFrame = 0;
+    if (!zoomPending) return;
+    zoomPending = false;
+    renderPage();
+    updateChrome();
+  });
 }
 function getZoom() {
   return state.zoom;
@@ -9133,7 +9402,6 @@ function wireUI() {
     '#ed5924',
     '#f2b705',
     '#3b6ef5',
-    '#cc8cf7',
   ];
   for (const c of swatches) {
     const d = document.createElement('div');

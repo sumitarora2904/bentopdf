@@ -8,7 +8,7 @@
 
 **BentoPDF** is a powerful, privacy-first, client-side PDF toolkit that is self-hostable and allows you to manipulate, edit, merge, and process PDF files directly in your browser. No server-side processing is required, ensuring your files remain secure and private.
 
-[![Docker Downloads](https://img.shields.io/badge/dynamic/json?url=https%3A%2F%2Fghcr-badge.elias.eu.org%2Fapi%2Falam00000%2Fbentopdf%2Fbentopdf&query=%24.downloadCount&logo=docker&label=Docker%20Downloads&color=blue)](https://github.com/alam00000/bentopdf/pkgs/container/bentopdf) [![Ko-fi](https://img.shields.io/badge/Buy%20me%20a%20Coffee-yellow?logo=kofi&style=flat-square)](https://ko-fi.com/alio01) ![GitHub Stars](https://img.shields.io/github/stars/alam00000/bentopdf?style=social)
+[![Docker Downloads](https://img.shields.io/endpoint?url=https%3A%2F%2Fraw.githubusercontent.com%2Falam00000%2Fbentopdf%2Fbadges%2Fdocker-downloads.json&cacheSeconds=3600)](https://github.com/alam00000/bentopdf/pkgs/container/bentopdf-simple) [![Ko-fi](https://img.shields.io/badge/Buy%20me%20a%20Coffee-yellow?logo=kofi&style=flat-square)](https://ko-fi.com/alio01) ![GitHub Stars](https://img.shields.io/github/stars/alam00000/bentopdf?style=social)
 [![Sponsor me on GitHub](https://img.shields.io/badge/Sponsor-%E2%9D%A4-ff69b4)](https://github.com/sponsors/alam00000)
 
 ![BentoPDF Tools](public/images/bentopdf-tools.png)
@@ -144,31 +144,31 @@ BentoPDF offers a comprehensive suite of tools to handle all your PDF needs.
 
 ### Organize & Manage PDFs
 
-| Tool Name                    | Description                                                                                             |
-| :--------------------------- | :------------------------------------------------------------------------------------------------------ |
-| **Merge PDFs**               | Combine multiple PDF files into one. Preserves Bookmarks.                                               |
-| **Split PDFs**               | Extract specific pages or divide a document into smaller files.                                         |
-| **Organize Pages**           | Reorder, duplicate, or delete pages with a simple drag-and-drop interface.                              |
-| **Extract Pages**            | Save a specific range of pages as a new PDF.                                                            |
-| **Delete Pages**             | Remove unwanted pages from your document.                                                               |
-| **Rotate PDF**               | Rotate individual or all pages in a document.                                                           |
-| **Rotate by Custom Degrees** | Rotate pages by any custom angle.                                                                       |
-| **N-Up PDF**                 | Combine multiple pages onto a single page.                                                              |
-| **View PDF**                 | A powerful, integrated PDF viewer.                                                                      |
-| **Alternate & Mix Pages**    | Merge pages by alternating pages from each PDF. Preserves Bookmarks.                                    |
-| **Posterize PDF**            | Split a PDF into multiple smaller pages for print.                                                      |
-| **PDF Multi Tool**           | Merge, Split, Organize, Delete, Rotate, Add Blank Pages, Extract and Duplicate in a unified interface.  |
-| **PDF Booklet**              | Rearrange pages for double-sided booklet printing. Fold and staple to create a booklet.                 |
-| **Add Attachments**          | Embed one or more files into your PDF.                                                                  |
-| **Extract Attachments**      | Extract all embedded files from PDF(s) as a ZIP.                                                        |
-| **Edit Attachments**         | View or remove attachments in your PDF.                                                                 |
-| **Divide Pages**             | Divide pages horizontally or vertically.                                                                |
-| **Combine to Single Page**   | Stitch all pages into one continuous scroll.                                                            |
-| **Add Blank Page**           | Insert an empty page anywhere in your PDF.                                                              |
-| **Reverse Pages**            | Flip the order of all pages in your document.                                                           |
-| **View Metadata**            | Inspect the hidden properties of your PDF.                                                              |
-| **PDFs to ZIP**              | Package multiple PDF files into a ZIP archive.                                                          |
-| **Compare PDFs**             | Compare two PDFs side by side.                                                                          |
+| Tool Name                    | Description                                                                                            |
+| :--------------------------- | :----------------------------------------------------------------------------------------------------- |
+| **Merge PDFs**               | Combine multiple PDF files into one. Preserves Bookmarks.                                              |
+| **Split PDFs**               | Extract specific pages or divide a document into smaller files.                                        |
+| **Organize Pages**           | Reorder, duplicate, or delete pages with a simple drag-and-drop interface.                             |
+| **Extract Pages**            | Save a specific range of pages as a new PDF.                                                           |
+| **Delete Pages**             | Remove unwanted pages from your document.                                                              |
+| **Rotate PDF**               | Rotate individual or all pages in a document.                                                          |
+| **Rotate by Custom Degrees** | Rotate pages by any custom angle.                                                                      |
+| **N-Up PDF**                 | Combine multiple pages onto a single page.                                                             |
+| **View PDF**                 | A powerful, integrated PDF viewer.                                                                     |
+| **Alternate & Mix Pages**    | Merge pages by alternating pages from each PDF. Preserves Bookmarks.                                   |
+| **Posterize PDF**            | Split a PDF into multiple smaller pages for print.                                                     |
+| **PDF Multi Tool**           | Merge, Split, Organize, Delete, Rotate, Add Blank Pages, Extract and Duplicate in a unified interface. |
+| **PDF Booklet**              | Rearrange pages for double-sided booklet printing. Fold and staple to create a booklet.                |
+| **Add Attachments**          | Embed one or more files into your PDF.                                                                 |
+| **Extract Attachments**      | Extract all embedded files from PDF(s) as a ZIP.                                                       |
+| **Edit Attachments**         | View or remove attachments in your PDF.                                                                |
+| **Divide Pages**             | Divide pages horizontally or vertically.                                                               |
+| **Combine to Single Page**   | Stitch all pages into one continuous scroll.                                                           |
+| **Add Blank Page**           | Insert an empty page anywhere in your PDF.                                                             |
+| **Reverse Pages**            | Flip the order of all pages in your document.                                                          |
+| **View Metadata**            | Inspect the hidden properties of your PDF.                                                             |
+| **PDFs to ZIP**              | Package multiple PDF files into a ZIP archive.                                                         |
+| **Compare PDFs**             | Compare two PDFs side by side.                                                                         |
 
 ### Edit & Modify PDFs
 
