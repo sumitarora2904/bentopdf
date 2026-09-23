@@ -60,6 +60,8 @@
     "subtitle": "Auf einen beliebigen Absatz klicken und ihn direkt bearbeiten – mit Live-Umbruch, Schriftarten und Formatierung.",
     "saved": "PDF erfolgreich gespeichert! ({{size}} KB)",
     "failedToLoad": "Der PDF-Texteditor konnte nicht geladen werden.",
+    "loadingFonts": "Schriftarten werden geladen...",
+    "fontsUnavailable": "Eine für einige Zeichen benötigte Schriftart konnte nicht heruntergeladen werden. Prüfen Sie Ihre Verbindung und versuchen Sie es erneut, sonst werden diese Zeichen im gespeicherten PDF möglicherweise nicht korrekt angezeigt.",
     "howToUpload": "PDF hochladen",
     "howToClick": "Absatz anklicken",
     "howToRestyle": "Alles umgestalten",
@@ -1311,5 +1313,13 @@
     "faqSinglePageAnswer": "Ja! Aktivieren Sie die Option \"Wiederholen\" und Ihre Überlagerungsseiten werden auf allen Basisseiten wiederholt. Ein einseitiges Wasserzeichen wird auf jeder Seite angewendet.",
     "faqPrivacyQuestion": "Sind meine Dateien privat und sicher?",
     "faqPrivacyAnswer": "Absolut! Die gesamte Verarbeitung findet in Ihrem Browser statt. Ihre Dateien verlassen niemals Ihr Gerät, was vollständige Privatsphäre gewährleistet."
+  },
+  "unlockPdf": {
+    "name": "PDF entschlüsseln",
+    "subtitle": "PDF durch Entfernen des Passwortschutzes entsperren."
+  },
+  "protectPdf": {
+    "name": "PDF verschlüsseln",
+    "subtitle": "Ihre PDF durch Hinzufügen eines Passworts sperren."
   }
 }

@@ -60,6 +60,8 @@
     "subtitle": "Klik paragraf mana pun dan edit langsung di tempat dengan penyusunan ulang teks secara langsung, font, dan gaya.",
     "saved": "PDF berhasil disimpan! ({{size}} KB)",
     "failedToLoad": "Gagal memuat Editor Teks PDF.",
+    "loadingFonts": "Memuat font...",
+    "fontsUnavailable": "Font yang diperlukan untuk beberapa karakter tidak dapat diunduh. Periksa koneksi Anda dan coba lagi, atau karakter tersebut mungkin tidak tampil dengan benar di PDF yang disimpan.",
     "howToUpload": "Unggah PDF",
     "howToClick": "Klik sebuah paragraf",
     "howToRestyle": "Ubah gaya apa pun",
@@ -1312,5 +1314,13 @@
     "faqSinglePageAnswer": "Ya! Aktifkan opsi \"Ulangi\" dan halaman overlay Anda akan berulang di semua halaman dasar. Watermark satu halaman akan diterapkan ke setiap halaman.",
     "faqPrivacyQuestion": "Apakah file saya pribadi dan aman?",
     "faqPrivacyAnswer": "Tentu saja! Semua pemrosesan terjadi di browser Anda. File Anda tidak pernah meninggalkan perangkat Anda, memastikan privasi penuh."
+  },
+  "unlockPdf": {
+    "name": "Dekripsi PDF",
+    "subtitle": "Buka kunci PDF dengan menghapus perlindungan kata sandi."
+  },
+  "protectPdf": {
+    "name": "Enkripsi PDF",
+    "subtitle": "Kunci PDF Anda dengan menambahkan kata sandi."
   }
 }

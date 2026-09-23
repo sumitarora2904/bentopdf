@@ -7,15 +7,15 @@
     <!-- Primary Meta Tags -->
     <meta
       name="title"
-      content="Encrypt PDF Online Free - Encrypt PDF Tool | BentoPDF"
+      content="PDF to Word Converter Free - PDF to DOCX Online | BentoPDF"
     />
     <meta
       name="description"
-      content="★ Encrypt PDF online free - Encrypt PDFs easily ★ No signup ★ Unlimited files ★ Privacy-first ★ Works in browser ★ Fast & secure"
+      content="Pdf To Docx online. Free, no uploads, no signup. Runs entirely in your browser."
     />
     <meta
       name="keywords"
-      content="encrypt pdf, password protect pdf, secure pdf"
+      content="pdf to word, pdf to docx, convert pdf to word"
     />
     <meta name="author" content="BentoPDF" />
     <meta
@@ -24,22 +24,22 @@
     />
 
     <!-- Canonical URL -->
-    <link rel="canonical" href="https://www.bentopdf.com/encrypt-pdf" />
+    <link rel="canonical" href="https://www.bentopdf.com/pdf-to-word" />
 
     <!-- Open Graph / Facebook / LinkedIn -->
     <meta property="og:type" content="website" />
-    <meta property="og:url" content="https://www.bentopdf.com/encrypt-pdf" />
+    <meta property="og:url" content="https://www.bentopdf.com/pdf-to-word" />
     <meta
       property="og:title"
-      content="Encrypt PDF Online Free - Encrypt PDF Tool | BentoPDF"
+      content="PDF to Word Converter Free - PDF to DOCX Online | BentoPDF"
     />
     <meta
       property="og:description"
-      content="★ Encrypt PDF online free - Encrypt PDFs easily ★ No signup ★ Unlimited files ★ Privacy-first ★ Works in browser ★ Fast & secure"
+      content="Pdf To Docx online. Free, no uploads, no signup. Runs entirely in your browser."
     />
     <meta
       property="og:image"
-      content="https://www.bentopdf.com/images/og-encrypt-pdf.png"
+      content="https://www.bentopdf.com/images/og-pdf-to-word.png"
     />
     <meta property="og:image:width" content="1200" />
     <meta property="og:image:height" content="630" />
@@ -47,28 +47,27 @@
 
     <!-- Twitter Card -->
     <meta name="twitter:card" content="summary_large_image" />
-    <meta name="twitter:url" content="https://www.bentopdf.com/encrypt-pdf" />
-    <meta name="twitter:title" content="Encrypt PDF Free" />
+    <meta name="twitter:url" content="https://www.bentopdf.com/pdf-to-word" />
+    <meta
+      name="twitter:title"
+      content="PDF to Word Converter Free - PDF to DOCX Online | BentoPDF"
+    />
     <meta
       name="twitter:description"
-      content="★ Encrypt PDF online free - Encrypt PDFs easily ★ No signup ★ Unlimited files ★ Privacy-first ★ Works in browser ★ Fast & secure"
+      content="Pdf To Docx online. Free, no uploads, no signup. Runs entirely in your browser."
     />
     <meta
       name="twitter:image"
-      content="https://www.bentopdf.com/images/twitter-encrypt-pdf.png"
+      content="https://www.bentopdf.com/images/twitter-pdf-to-word.png"
     />
     <meta name="twitter:site" content="@BentoPDF" />
 
     <!-- Mobile Web App -->
     <meta name="mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
-    <meta name="apple-mobile-web-app-title" content="Encrypt PDF" />
+    <meta name="apple-mobile-web-app-title" content="PDF to Word" />
 
-    <title>Encrypt PDF - Password Protect Your PDFs - BentoPDF</title>
-    <meta
-      name="description"
-      content="Encrypt PDF files with 256-bit AES encryption. Add password protection and set usage restrictions. Free, secure, and runs entirely in your browser."
-    />
+    <title>PDF to Word Converter Free - PDF to DOCX Online | BentoPDF</title>
 
     <link href="/src/css/styles.css" rel="stylesheet" />
 
@@ -110,22 +109,22 @@
       >
         <button
           id="back-to-tools"
-          class="flex items-center gap-2 text-indigo-400 hover:text-indigo-300 mb-6 font-semibold"
+          class="flex items-center gap-2 text-indigo-300 hover:text-indigo-400 mb-6 font-semibold"
         >
           <i data-lucide="arrow-left" class="cursor-pointer"></i>
-          <span class="cursor-pointer" data-i18n="tools.backToTools">
-            Back to Tools
-          </span>
+          <span class="cursor-pointer" data-i18n="tools.backToTools"
+            >Back to Tools</span
+          >
         </button>
 
         <h1
           class="text-2xl font-bold text-white mb-2"
-          data-i18n="tools:encryptPdf.name"
+          data-i18n="tools:pdfToWord.name"
         >
-          Encrypt PDF
+          PDF to Word
         </h1>
-        <p class="text-gray-400 mb-6" data-i18n="tools:encryptPdf.subtitle">
-          Lock your PDF by adding a password.
+        <p class="text-gray-400 mb-6" data-i18n="tools:pdfToWord.subtitle">
+          Convert PDF files to editable Word (DOCX) documents.
         </p>
 
         <div
@@ -136,9 +135,15 @@
             <i class="ph ph-upload-simple text-4xl mb-3 text-gray-400"></i>
             <p class="mb-2 text-sm text-gray-400">
               <span class="font-semibold" data-i18n="upload.clickToSelect"
-                >Click to select PDF</span
+                >Click to select files</span
               >
               <span data-i18n="upload.orDragAndDrop">or drag and drop</span>
+            </p>
+            <p
+              class="text-xs text-gray-500"
+              data-i18n="upload.hints.oneOrMorePdfs"
+            >
+              One or more PDF files
             </p>
             <p class="text-xs text-gray-500" data-i18n="upload.filesNeverLeave">
               Your files never leave your device.
@@ -149,67 +154,37 @@
             type="file"
             class="absolute top-0 left-0 w-full h-full opacity-0 cursor-pointer"
             accept="application/pdf"
+            multiple
           />
+        </div>
+
+        <div id="file-controls" class="hidden mt-4 flex gap-3">
+          <button
+            id="add-more-btn"
+            class="btn bg-indigo-600 hover:bg-indigo-700 text-white font-semibold px-4 py-2 rounded-lg flex items-center gap-2"
+          >
+            <i data-lucide="plus"></i>
+            <span data-i18n="upload.addMore">Add More Files</span>
+          </button>
+          <button
+            id="clear-files-btn"
+            class="btn bg-gray-700 hover:bg-gray-600 text-white font-semibold px-4 py-2 rounded-lg flex items-center gap-2"
+          >
+            <i data-lucide="trash-2"></i>
+            <span data-i18n="upload.clearAll">Clear All</span>
+          </button>
         </div>
 
         <div id="file-display-area" class="mt-4 space-y-2"></div>
 
-        <div id="tool-options" class="hidden mt-6 space-y-4">
-          <div>
-            <label
-              for="user-password-input"
-              class="block mb-2 text-sm font-medium text-gray-300"
-              >User Password (Required)</label
-            >
-            <input
-              type="password"
-              id="user-password-input"
-              placeholder="Enter password to open PDF"
-              class="w-full bg-gray-700 border border-gray-600 text-white rounded-lg p-2.5"
-            />
-            <p class="text-xs text-gray-500 mt-1">
-              This password will be required to open the PDF.
-            </p>
-          </div>
-
-          <div>
-            <label
-              for="owner-password-input"
-              class="block mb-2 text-sm font-medium text-gray-300"
-              >Owner Password (Optional)</label
-            >
-            <input
-              type="password"
-              id="owner-password-input"
-              placeholder="Enter password for permissions (optional)"
-              class="w-full bg-gray-700 border border-gray-600 text-white rounded-lg p-2.5"
-            />
-            <p class="text-xs text-gray-500 mt-1">
-              If provided, usage restrictions will be applied. Leave empty for
-              no restrictions.
-            </p>
-          </div>
-
-          <div class="p-4 bg-gray-900 rounded-lg border border-gray-700">
-            <h3 class="text-sm font-semibold text-white mb-2">
-              Encryption Details:
-            </h3>
-            <ul class="text-xs text-gray-400 space-y-1 list-disc list-inside">
-              <li>256-bit AES encryption (highest security)</li>
-              <li>User password required to open PDF</li>
-              <li>Owner password enables usage restrictions</li>
-              <li>Without owner password: no restrictions applied</li>
-            </ul>
-          </div>
-
-          <button id="process-btn" class="btn-gradient w-full">
-            Encrypt PDF
+        <div id="convert-options" class="hidden mt-6 space-y-6">
+          <button id="process-btn" class="btn-gradient w-full mt-4">
+            Convert to DOCX
           </button>
         </div>
       </div>
     </div>
 
-    <!-- Loader Modal -->
     <div
       id="loader-modal"
       class="hidden fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50"
@@ -218,18 +193,12 @@
         class="bg-gray-800 p-8 rounded-lg flex flex-col items-center gap-4 border border-gray-700 shadow-xl"
       >
         <div class="solid-spinner"></div>
-        <p
-          id="loader-text"
-          class="text-white text-lg font-medium"
-          data-i18n="loader.processing"
-          data-i18n="loader.processing"
-        >
+        <p id="loader-text" class="text-white text-lg font-medium">
           Processing...
         </p>
       </div>
     </div>
 
-    <!-- Alert Modal -->
     <div
       id="alert-modal"
       class="fixed inset-0 bg-gray-900 bg-opacity-90 flex items-center justify-center z-50 hidden"
@@ -237,12 +206,7 @@
       <div
         class="bg-gray-800 rounded-lg shadow-xl p-6 max-w-sm w-full border border-gray-700"
       >
-        <h3
-          id="alert-title"
-          class="text-xl font-bold text-white mb-2"
-          data-i18n="alert.title"
-          data-i18n="alert.title"
-        >
+        <h3 id="alert-title" class="text-xl font-bold text-white mb-2">
           Alert
         </h3>
         <p id="alert-message" class="text-gray-300 mb-6"></p>
@@ -316,25 +280,25 @@
       </h2>
       <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
         <a
-          href="merge-pdf.html"
+          href="word-to-pdf.html"
           class="block bg-gray-800 p-4 rounded-lg hover:bg-gray-700 transition-colors border border-gray-700"
         >
-          <h3 class="text-white font-semibold mb-1">Merge PDF</h3>
-          <p class="text-gray-400 text-sm">Free online merge PDF tool</p>
+          <h3 class="text-white font-semibold mb-1">Word to PDF</h3>
+          <p class="text-gray-400 text-sm">Free online Word to PDF tool</p>
         </a>
         <a
-          href="compress-pdf.html"
+          href="pdf-to-text.html"
           class="block bg-gray-800 p-4 rounded-lg hover:bg-gray-700 transition-colors border border-gray-700"
         >
-          <h3 class="text-white font-semibold mb-1">Compress PDF</h3>
-          <p class="text-gray-400 text-sm">Free online compress PDF tool</p>
+          <h3 class="text-white font-semibold mb-1">PDF to Text</h3>
+          <p class="text-gray-400 text-sm">Free online PDF to text tool</p>
         </a>
         <a
-          href="split-pdf.html"
+          href="pdf-to-excel.html"
           class="block bg-gray-800 p-4 rounded-lg hover:bg-gray-700 transition-colors border border-gray-700"
         >
-          <h3 class="text-white font-semibold mb-1">Split PDF</h3>
-          <p class="text-gray-400 text-sm">Free online split PDF tool</p>
+          <h3 class="text-white font-semibold mb-1">PDF to Excel</h3>
+          <p class="text-gray-400 text-sm">Free online PDF to Excel tool</p>
         </a>
         <a
           href="edit-pdf.html"
@@ -344,11 +308,11 @@
           <p class="text-gray-400 text-sm">Free online edit PDF tool</p>
         </a>
         <a
-          href="rotate-pdf.html"
+          href="extract-pages.html"
           class="block bg-gray-800 p-4 rounded-lg hover:bg-gray-700 transition-colors border border-gray-700"
         >
-          <h3 class="text-white font-semibold mb-1">Rotate PDF</h3>
-          <p class="text-gray-400 text-sm">Free online rotate PDF tool</p>
+          <h3 class="text-white font-semibold mb-1">Extract Pages</h3>
+          <p class="text-gray-400 text-sm">Free online extract pages tool</p>
         </a>
       </div>
     </section>
@@ -361,41 +325,104 @@
       >
         Frequently Asked Questions
       </h2>
-      <div class="space-y-4">
-        <details class="bg-gray-800 p-5 rounded-lg border border-gray-700">
-          <summary
-            class="cursor-pointer font-semibold text-white flex items-center justify-between"
-          >
-            Is encrypt pdf really free?
-            <i data-lucide="chevron-down" class="w-5 h-5"></i>
+      <div class="faq-list">
+        <details class="faq-d">
+          <summary class="faq-d-q">
+            Will the Word document look like the PDF?
+            <i data-lucide="plus" class="faq-d-icon"></i>
           </summary>
-          <p class="mt-3 text-gray-400">
-            Yes! BentoPDF is 100% free with no hidden fees, no signup required,
-            and unlimited file processing.
+          <p class="faq-d-a">
+            Text, basic formatting, and page layout are reconstructed into a
+            .docx that stays close to the original for simple documents.
+            Multi-column layouts, text placed over graphics, embedded forms, and
+            unusual fonts may shift, so open the result and tidy it in Word or
+            Google Docs.
           </p>
         </details>
-        <details class="bg-gray-800 p-5 rounded-lg border border-gray-700">
-          <summary
-            class="cursor-pointer font-semibold text-white flex items-center justify-between"
-          >
-            Are my files private and secure?
-            <i data-lucide="chevron-down" class="w-5 h-5"></i>
+        <details class="faq-d">
+          <summary class="faq-d-q">
+            Why is my converted Word file empty?
+            <i data-lucide="plus" class="faq-d-icon"></i>
           </summary>
-          <p class="mt-3 text-gray-400">
-            Absolutely! All processing happens in your browser. Your files never
-            leave your device, ensuring complete privacy.
+          <p class="faq-d-a">
+            The PDF is a scan with no text layer, so there's nothing for the
+            converter to reconstruct and you get blank pages or a few stray
+            characters. Run the file through
+            <a href="/ocr-pdf" class="text-indigo-300 hover:text-indigo-400"
+              >OCR PDF</a
+            >
+            first to add a text layer, then convert the OCR'd PDF.
           </p>
         </details>
-        <details class="bg-gray-800 p-5 rounded-lg border border-gray-700">
-          <summary
-            class="cursor-pointer font-semibold text-white flex items-center justify-between"
-          >
-            Is there a file size limit?
-            <i data-lucide="chevron-down" class="w-5 h-5"></i>
+        <details class="faq-d">
+          <summary class="faq-d-q">
+            Can I edit the text after converting?
+            <i data-lucide="plus" class="faq-d-icon"></i>
           </summary>
-          <p class="mt-3 text-gray-400">
-            No! Process files of any size, as many times as you want, completely
-            free.
+          <p class="faq-d-a">
+            The output is a normal .docx with real paragraphs, not an image of
+            the page, so you can edit, restyle, and copy from it in Word,
+            LibreOffice Writer, or Google Docs.
+          </p>
+        </details>
+        <details class="faq-d">
+          <summary class="faq-d-q">
+            Does it handle CMYK or print-ready PDFs?
+            <i data-lucide="plus" class="faq-d-icon"></i>
+          </summary>
+          <p class="faq-d-a">
+            Before conversion the PDF is passed through Ghostscript to convert
+            it to RGB, which avoids the image errors that CMYK print files
+            otherwise cause in the converter. If that step fails, the original
+            file is used as is.
+          </p>
+        </details>
+        <details class="faq-d">
+          <summary class="faq-d-q">
+            Can I convert many PDFs at once?
+            <i data-lucide="plus" class="faq-d-icon"></i>
+          </summary>
+          <p class="faq-d-a">
+            Add as many files as you want; they're converted one after another
+            and downloaded as converted-documents.zip with one .docx per PDF. A
+            single file downloads directly under its own name with a .docx
+            extension.
+          </p>
+        </details>
+        <details class="faq-d">
+          <summary class="faq-d-q">
+            What about password-protected PDFs?
+            <i data-lucide="plus" class="faq-d-icon"></i>
+          </summary>
+          <p class="faq-d-a">
+            You're prompted for the password when conversion starts, and the
+            decrypted copy is converted. The resulting .docx isn't password
+            protected.
+          </p>
+        </details>
+        <details class="faq-d">
+          <summary class="faq-d-q">
+            Do I need Microsoft Word installed to convert PDF to Word?
+            <i data-lucide="plus" class="faq-d-icon"></i>
+          </summary>
+          <p class="faq-d-a">
+            No. The conversion is done by PyMuPDF and pdf2docx running in your
+            browser, and the .docx it produces opens in Word, LibreOffice
+            Writer, Pages, and Google Docs. To go the other way, use
+            <a href="/word-to-pdf" class="text-indigo-300 hover:text-indigo-400"
+              >Word to PDF</a
+            >.
+          </p>
+        </details>
+        <details class="faq-d">
+          <summary class="faq-d-q">
+            Is the PDF uploaded to convert it to Word?
+            <i data-lucide="plus" class="faq-d-icon"></i>
+          </summary>
+          <p class="faq-d-a">
+            No. The whole pipeline, from reading the PDF to writing the .docx,
+            runs in WebAssembly inside your browser, so contracts and reports
+            stay on your device.
           </p>
         </details>
       </div>
@@ -404,9 +431,8 @@
     <script type="module" src="/src/js/utils/lucide-init.ts"></script>
     <script type="module" src="/src/js/utils/full-width.ts"></script>
     <script type="module" src="/src/js/utils/simple-mode-footer.ts"></script>
-    <script type="module" src="/src/js/logic/encrypt-pdf-page.ts"></script>
+    <script type="module" src="/src/js/logic/pdf-to-word-page.ts"></script>
     <script type="module" src="/src/js/mobileMenu.ts"></script>
-
     <script type="module" src="/src/js/main.ts"></script>
 
     <!-- JSON-LD Structured Data -->
@@ -414,7 +440,7 @@
       {
         "@context": "https://schema.org",
         "@type": "SoftwareApplication",
-        "name": "Encrypt PDF - BentoPDF",
+        "name": "PDF to Word - BentoPDF",
         "applicationCategory": "PDF Tool",
         "operatingSystem": "Any - Web Browser",
         "offers": {
@@ -429,8 +455,8 @@
       {
         "@context": "https://schema.org",
         "@type": "HowTo",
-        "name": "How to encrypt online",
-        "description": "Learn how to encrypt using BentoPDF",
+        "name": "How to convert PDF to Word online",
+        "description": "Learn how to convert PDF to Word using BentoPDF",
         "step": [
           {
             "@type": "HowToStep",
@@ -468,8 +494,8 @@
           {
             "@type": "ListItem",
             "position": 2,
-            "name": "Encrypt PDF",
-            "item": "https://www.bentopdf.com/encrypt-pdf"
+            "name": "PDF to Word",
+            "item": "https://www.bentopdf.com/pdf-to-word"
           }
         ]
       }

@@ -61,6 +61,8 @@
     "subtitle": "Click any paragraph and edit it in place with live reflow, fonts, and styling.",
     "saved": "PDF saved successfully! ({{size}} KB)",
     "failedToLoad": "Failed to load the PDF Text Editor.",
+    "loadingFonts": "Loading fonts...",
+    "fontsUnavailable": "A font needed for some characters could not be downloaded. Check your connection and try again, or those characters may not appear correctly in the saved PDF.",
     "howToUpload": "Upload PDF",
     "howToClick": "Click a Paragraph",
     "howToRestyle": "Restyle Anything",
@@ -1313,5 +1315,13 @@
     "faqSinglePageAnswer": "Yes! Enable the \"Loop\" option and your overlay PDF pages will repeat across all base pages. A single-page watermark will apply to every page.",
     "faqPrivacyQuestion": "Are my files private and secure?",
     "faqPrivacyAnswer": "Absolutely! All processing happens in your browser. Your files never leave your device, ensuring complete privacy."
+  },
+  "unlockPdf": {
+    "name": "Unlock PDF",
+    "subtitle": "Remove the password from a PDF so it opens freely. Requires the current password."
+  },
+  "protectPdf": {
+    "name": "Protect PDF",
+    "subtitle": "Password protect a PDF with strong AES encryption."
   }
 }

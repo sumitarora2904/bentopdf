@@ -60,6 +60,8 @@
     "subtitle": "Nhấp vào bất kỳ đoạn văn nào và chỉnh sửa ngay tại chỗ với tính năng tự động dàn lại văn bản, phông chữ và kiểu dáng.",
     "saved": "Đã lưu PDF thành công! ({{size}} KB)",
     "failedToLoad": "Không thể tải Trình chỉnh sửa văn bản PDF.",
+    "loadingFonts": "Đang tải phông chữ...",
+    "fontsUnavailable": "Không thể tải xuống phông chữ cần cho một số ký tự. Hãy kiểm tra kết nối và thử lại, nếu không các ký tự đó có thể không hiển thị đúng trong tệp PDF đã lưu.",
     "howToUpload": "Tải PDF lên",
     "howToClick": "Nhấp vào một đoạn văn",
     "howToRestyle": "Đổi kiểu mọi thứ",
@@ -1312,5 +1314,13 @@
     "faqSinglePageAnswer": "Có! Bật tùy chọn \"Lặp lại\" và các trang chồng sẽ lặp lại trên tất cả các trang gốc. Hình mờ một trang sẽ được áp dụng cho mọi trang.",
     "faqPrivacyQuestion": "Tệp của tôi có được bảo mật không?",
     "faqPrivacyAnswer": "Chắc chắn! Toàn bộ quá trình xử lý diễn ra trong trình duyệt của bạn. Tệp của bạn không bao giờ rời khỏi thiết bị, đảm bảo quyền riêng tư hoàn toàn."
+  },
+  "unlockPdf": {
+    "name": "Giải mã PDF",
+    "subtitle": "Mở khóa PDF bằng cách xóa bảo vệ mật khẩu."
+  },
+  "protectPdf": {
+    "name": "Mã hóa PDF",
+    "subtitle": "Khóa PDF của bạn bằng cách thêm mật khẩu."
   }
 }

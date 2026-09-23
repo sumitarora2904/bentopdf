@@ -60,6 +60,8 @@
     "subtitle": "Herhangi bir paragrafa tıklayın ve canlı yeniden akış, yazı tipleri ve stillerle yerinde düzenleyin.",
     "saved": "PDF başarıyla kaydedildi! ({{size}} KB)",
     "failedToLoad": "PDF Metin Düzenleyici yüklenemedi.",
+    "loadingFonts": "Yazı tipleri yükleniyor...",
+    "fontsUnavailable": "Bazı karakterler için gereken bir yazı tipi indirilemedi. Bağlantınızı kontrol edip tekrar deneyin, aksi takdirde bu karakterler kaydedilen PDF'de doğru görünmeyebilir.",
     "howToUpload": "PDF yükle",
     "howToClick": "Bir paragrafa tıklayın",
     "howToRestyle": "Her şeyi yeniden biçimlendirin",
@@ -1312,5 +1314,13 @@
     "faqSinglePageAnswer": "Evet! \"Tekrarla\" seçeneğini etkinleştirin ve üst katman sayfalarınız tüm temel sayfalarda tekrarlanır. Tek sayfalık bir filigran her sayfaya uygulanır.",
     "faqPrivacyQuestion": "Dosyalarım gizli ve güvende mi?",
     "faqPrivacyAnswer": "Kesinlikle! Tüm işleme tarayıcınızda gerçekleşir. Dosyalarınız cihazınızı asla terk etmez, tam gizlilik sağlanır."
+  },
+  "unlockPdf": {
+    "name": "PDF'nin Şifresini Çöz",
+    "subtitle": "Şifre korumasını kaldırarak PDF'nin kilidini açın."
+  },
+  "protectPdf": {
+    "name": "PDF'yi Şifrele",
+    "subtitle": "PDF'nizi şifre ekleyerek koruyun."
   }
 }
