@@ -77,14 +77,19 @@ podman-compose up -d
 # Dockerfile
 FROM node:20-alpine AS builder
 WORKDIR /app
+ENV HUSKY=0
 COPY package*.json ./
+COPY vendor ./vendor
 RUN npm ci
 COPY . .
 RUN npm run build
 
 FROM nginxinc/nginx-unprivileged:alpine
 COPY --from=builder /app/dist /usr/share/nginx/html
+COPY --from=builder /app/security-headers.conf /etc/nginx/security-headers.conf
+COPY --from=builder /app/security-headers-docs.conf /etc/nginx/security-headers-docs.conf
 COPY nginx.conf /etc/nginx/nginx.conf
+RUN mkdir -p /etc/nginx/tmp
 EXPOSE 8080
 CMD ["nginx", "-g", "daemon off;"]
 ```
@@ -118,6 +123,7 @@ docker run -d -p 3000:8080 bentopdf:custom
 | `DISABLE_GITHUB_STARS`               | Überspringt den Abruf der GitHub-Sterne beim Laden der Seite und entfernt `api.github.com` aus der CSP. Simple-Mode-Builds überspringen ihn immer.                                               | `false`                                                        |
 | `SITE_URL`                           | Öffentliche URL, die in Canonical-, hreflang- und Sitemap-Links geschrieben wird. Lassen Sie den Standard, sofern Suchmaschinen Ihre Bereitstellung nicht als eigene Website behandeln sollen.   | `https://www.bentopdf.com`                                     |
 | `ALLOW_INDEXING`                     | Bei einer eigenen `SITE_URL` wird jede Seite mit `noindex` markiert, damit Ihre Kopie in den Suchergebnissen nicht mit bentopdf.com konkurriert. Mit `true` dürfen Suchmaschinen sie indexieren. | `false`                                                        |
+| `COMPRESSION_MODE`                   | Vorkomprimierte Kopien: `o` keine, `g` `.gz` (vom nginx des Images ausgeliefert), `b` `.br`, `all` beide. Der nginx des Images kann `.br` nicht ausliefern.                                      | `o`                                                            |
 
 Die WASM-Modul-URLs sind mit CDN-Standardwerten vorkonfiguriert, sodass alle erweiterten Funktionen sofort funktionieren. Überschreiben Sie sie für abgeschottete oder selbst gehostete Bereitstellungen.
 
@@ -254,6 +260,8 @@ Sie können auch einzelne Funktionen im PDF-Editor (z. B. Schwärzen, Annotation
 
 **Formen:** `annotation-shape`, `annotation-rectangle`, `annotation-circle`, `annotation-line`, `annotation-arrow`, `annotation-polygon`, `annotation-polyline`
 
+**Messen:** `annotation-measurement`, `mode-measure`, `annotation-distance`, `annotation-perimeter`, `annotation-area`
+
 **Formular:** `form`, `form-textfield`, `form-checkbox`, `form-radio`, `form-select`, `form-listbox`, `form-fill-mode`
 
 **Schwärzung:** `redaction`, `redaction-area`, `redaction-text`, `redaction-apply`, `redaction-clear`
@@ -264,7 +272,7 @@ Sie können auch einzelne Funktionen im PDF-Editor (z. B. Schwärzen, Annotation
 
 **Panel:** `panel`, `panel-sidebar`, `panel-search`, `panel-comment`
 
-**Werkzeuge:** `tools`, `pan`, `pointer`, `capture`
+**Werkzeuge:** `tools`, `pan`, `pointer`, `capture`, `organize`
 
 **Auswahl:** `selection`, `selection-copy`
 

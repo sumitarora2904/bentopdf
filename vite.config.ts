@@ -6,11 +6,9 @@ import type { Connect, Plugin } from 'vite';
 // import basicSsl from '@vitejs/plugin-basic-ssl';
 import tailwindcss from '@tailwindcss/vite';
 import { nodePolyfills } from 'vite-plugin-node-polyfills';
-import viteCompression from 'vite-plugin-compression';
 import handlebars from 'vite-plugin-handlebars';
 import { resolve } from 'path';
 import fs from 'fs';
-import { constants as zlibConstants } from 'zlib';
 import { createHash } from 'crypto';
 
 function engineVersion(): string {
@@ -78,6 +76,7 @@ function loadPages(): Set<string> {
     'licensing',
     'kura',
     'hyper-compress',
+    'advertise',
     '404',
     'pdf-converter',
     'pdf-editor',
@@ -686,6 +685,11 @@ export default defineConfig(({ command }) => {
     (command === 'serve' || process.env.INCLUDE_DOCS === 'true')
       ? '/docs/'
       : 'https://www.bentopdf.com/docs';
+  const showAds =
+    command === 'serve' ||
+    ['bentopdf.com', 'www.bentopdf.com'].includes(
+      process.env.VERCEL_PROJECT_PRODUCTION_URL ?? ''
+    );
 
   if (USE_CDN) {
     console.log('[Vite] Using CDN for WASM files (with local fallback)');
@@ -710,6 +714,7 @@ export default defineConfig(({ command }) => {
           brandLogo: process.env.VITE_BRAND_LOGO || '',
           footerText: process.env.VITE_FOOTER_TEXT || '',
           appVersion: process.env.npm_package_version || 'Unknown',
+          showAds,
         },
       }),
       languageRouterPlugin(),
@@ -726,30 +731,6 @@ export default defineConfig(({ command }) => {
           global: false,
           process: true,
         },
-      }),
-      viteCompression({
-        algorithm: 'brotliCompress',
-        ext: '.br',
-        threshold: 1024,
-        filter: /\.(js|mjs|json|css|html|wasm|svg)$/i,
-        compressionOptions: {
-          params: {
-            [zlibConstants.BROTLI_PARAM_QUALITY]: 11,
-            [zlibConstants.BROTLI_PARAM_MODE]:
-              zlibConstants.BROTLI_MODE_GENERIC,
-          },
-        },
-        deleteOriginFile: false,
-      }),
-      viteCompression({
-        algorithm: 'gzip',
-        ext: '.gz',
-        threshold: 1024,
-        filter: /\.(js|mjs|json|css|html|wasm|svg)$/i,
-        compressionOptions: {
-          level: 9,
-        },
-        deleteOriginFile: false,
       }),
     ],
     define: {
@@ -829,6 +810,9 @@ export default defineConfig(({ command }) => {
           licensing: resolve(__dirname, 'licensing.html'),
           kura: resolve(__dirname, 'kura.html'),
           'hyper-compress': resolve(__dirname, 'hyper-compress.html'),
+          ...(showAds
+            ? { advertise: resolve(__dirname, 'advertise.html') }
+            : {}),
           ...Object.fromEntries(
             fs
               .readdirSync(resolve(__dirname, 'blog'))

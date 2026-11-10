@@ -312,16 +312,6 @@
     ],
     "pageCount": 1
   },
-  "0204255c22df": {
-    "text": "Click the scissors icon on a page to place a split marker after it; a dashed line shows where the document will be divided. Export then produces split-documents.zip containing document - 1.pdf, document - 2.pdf, and so on.",
-    "tags": [
-      "p"
-    ],
-    "pages": [
-      "pdf-multi-tool"
-    ],
-    "pageCount": 1
-  },
   "020e6e164ee4": {
     "text": "A scanned PDF stores each page as one large image, so you'll get one full-page picture per page rather than the individual photos or figures on it. Crop what you need from those page images afterward.",
     "tags": [
@@ -371,18 +361,6 @@
       "validate-signature-pdf"
     ],
     "pageCount": 1
-  },
-  "02438bd53f5f": {
-    "text": "DigitalOcean Referral Badge",
-    "tags": [
-      "img"
-    ],
-    "pages": [
-      "404",
-      "about",
-      "add-attachments"
-    ],
-    "pageCount": 137
   },
   "02482f5739fe": {
     "text": "CSV to PDF Online Free - CSV to PDF Tool | BentoPDF",
@@ -598,17 +576,6 @@
       "hyper-compress"
     ],
     "pageCount": 1
-  },
-  "031965c8834c": {
-    "text": "Per product, billed annually. Every tier includes all updates and new releases while active.",
-    "tags": [
-      "p"
-    ],
-    "pages": [
-      "hyper-compress",
-      "kura"
-    ],
-    "pageCount": 2
   },
   "031bb873da88": {
     "text": "RTL",
@@ -5779,6 +5746,16 @@
     ],
     "pageCount": 1
   },
+  "21d9f5119b3f": {
+    "text": "Click Split and choose how to divide the document: by page ranges, odd and even pages, every page, bookmarks, every N pages, or file size. One part downloads as a PDF; several parts download together as a ZIP.",
+    "tags": [
+      "p"
+    ],
+    "pages": [
+      "pdf-multi-tool"
+    ],
+    "pageCount": 1
+  },
   "21df73947a06": {
     "text": "Italiano",
     "tags": [
@@ -7708,6 +7685,16 @@
     ],
     "pages": [
       "index"
+    ],
+    "pageCount": 1
+  },
+  "2e5ac02cccc8": {
+    "text": "You have 30 days to renew. After that, you can no longer release new versions of your product with Kura, offer it to new users, or serve or host it, including web apps that load it in the browser. Copies your end users installed on their own devices before then keep working. Any other use falls under the AGPL, and renewing later includes the time since your license ended. The <1>full license terms</1> cover every condition in detail.",
+    "tags": [
+      "p"
+    ],
+    "pages": [
+      "kura"
     ],
     "pageCount": 1
   },
@@ -14038,6 +14025,16 @@
     ],
     "pageCount": 1
   },
+  "5340f76f3d1b": {
+    "text": "You have 30 days to renew. After that, you can no longer release new versions of your product with Hyper Compress, offer it to new users, or serve or host it, including web apps that load it in the browser. Copies your end users installed on their own devices before then keep working. Any other use falls under the AGPL, and renewing later includes the time since your license ended. The <1>full license terms</1> cover every condition in detail.",
+    "tags": [
+      "p"
+    ],
+    "pages": [
+      "hyper-compress"
+    ],
+    "pageCount": 1
+  },
   "5344c8e3db93": {
     "text": "No. Rendering the pages and building the new single-page PDF both happen in your browser, and the file stays on your device the whole time.",
     "tags": [
@@ -14854,6 +14851,16 @@
     ],
     "pages": [
       "remove-blank-pages"
+    ],
+    "pageCount": 1
+  },
+  "576bfed36d9e": {
+    "text": "You get every release while your subscription is active. Your rights to use, ship and host Kura last as long as your subscription does.",
+    "tags": [
+      "p"
+    ],
+    "pages": [
+      "kura"
     ],
     "pageCount": 1
   },
@@ -16491,6 +16498,17 @@
     ],
     "pageCount": 1
   },
+  "617f5de24c80": {
+    "text": "Annual subscription",
+    "tags": [
+      "h3"
+    ],
+    "pages": [
+      "hyper-compress",
+      "kura"
+    ],
+    "pageCount": 2
+  },
   "617f7aafcd02": {
     "text": "C5 (162 × 229 mm)",
     "tags": [
@@ -17102,6 +17120,16 @@
     ],
     "pages": [
       "bookmark"
+    ],
+    "pageCount": 1
+  },
+  "65b2261a26c5": {
+    "text": "<1>Building on BentoPDF?</1> Hyper Compress is included with the <2>BentoPDF commercial license</2> when you use it through BentoPDF's own tools in an eligible product, for companies under US$1 million in revenue and funding. These tiers are for using the engine directly, inside your own software, or above that size.",
+    "tags": [
+      "p"
+    ],
+    "pages": [
+      "hyper-compress"
     ],
     "pageCount": 1
   },
@@ -27687,16 +27715,6 @@
     ],
     "pageCount": 1
   },
-  "a0db9fb53182": {
-    "text": "Drop JPG, PNG, WebP, HEIC, TIFF, BMP, GIF, or SVG files alongside your PDFs and each image becomes a page you can move, rotate, or delete like any other. Blank A4 pages can also be appended with the Add Blank Page button.",
-    "tags": [
-      "p"
-    ],
-    "pages": [
-      "pdf-multi-tool"
-    ],
-    "pageCount": 1
-  },
   "a0ddc60aede2": {
     "text": "What page size does the PDF get when I convert a BMP? <1/>",
     "tags": [
@@ -28257,6 +28275,16 @@
     ],
     "pages": [
       "compress-pdf-to-2mb"
+    ],
+    "pageCount": 1
+  },
+  "a40145eb9c31": {
+    "text": "You get every release while your subscription is active. Your rights to use, ship and host Hyper Compress last as long as your subscription does.",
+    "tags": [
+      "p"
+    ],
+    "pages": [
+      "hyper-compress"
     ],
     "pageCount": 1
   },
@@ -28868,6 +28896,17 @@
     "pages": [
       "index",
       "pdf-converter"
+    ],
+    "pageCount": 2
+  },
+  "a79d34e136a2": {
+    "text": "Per product, billed annually and renewed automatically. Your license and every update stay valid while your subscription is active.",
+    "tags": [
+      "p"
+    ],
+    "pages": [
+      "hyper-compress",
+      "kura"
     ],
     "pageCount": 2
   },
@@ -29606,16 +29645,6 @@
     ],
     "pages": [
       "heic-to-pdf"
-    ],
-    "pageCount": 1
-  },
-  "ac4a333c4b22": {
-    "text": "<1>Building on BentoPDF?</1> Hyper Compress is included with the <2>BentoPDF commercial license</2> when you use it through BentoPDF's own tools. These tiers are for using the engine directly or inside your own software.",
-    "tags": [
-      "p"
-    ],
-    "pages": [
-      "hyper-compress"
     ],
     "pageCount": 1
   },
@@ -39263,17 +39292,6 @@
     ],
     "pageCount": 1
   },
-  "e62771656854": {
-    "text": "Every release published while your license is active is yours. If you let it lapse, you keep a perpetual right to the last version you received.",
-    "tags": [
-      "p"
-    ],
-    "pages": [
-      "hyper-compress",
-      "kura"
-    ],
-    "pageCount": 2
-  },
   "e632656732d4": {
     "text": "Convert WordPerfect documents (WPD) to PDF format. Supports multiple files. Free, no uploads, no signup. Runs entirely in your browser.",
     "tags": [
@@ -39444,16 +39462,6 @@
     ],
     "pages": [
       "pdf-booklet"
-    ],
-    "pageCount": 1
-  },
-  "e71886eedb21": {
-    "text": "Yes, when you use it through BentoPDF. The <1>BentoPDF commercial license</1> includes Hyper Compress as a bundled component, so you can use it through BentoPDF's own tools, as part of the BentoPDF application you deploy. Using the engine directly, through an API, SDK, command line or server process, or inside other software, needs a Hyper Compress license. A Hyper Compress license does not cover BentoPDF.",
-    "tags": [
-      "p"
-    ],
-    "pages": [
-      "hyper-compress"
     ],
     "pageCount": 1
   },
@@ -40080,6 +40088,17 @@
       "json-to-pdf"
     ],
     "pageCount": 1
+  },
+  "eab385f97621": {
+    "text": "<1>What happens if I stop renewing?</1> <2/>",
+    "tags": [
+      "button"
+    ],
+    "pages": [
+      "hyper-compress",
+      "kura"
+    ],
+    "pageCount": 2
   },
   "eab9dcc6b540": {
     "text": "Can I save a workflow and reuse it later? <1/>",
@@ -42150,17 +42169,6 @@
     ],
     "pageCount": 1
   },
-  "f70d6756b241": {
-    "text": "Updates included",
-    "tags": [
-      "h3"
-    ],
-    "pages": [
-      "hyper-compress",
-      "kura"
-    ],
-    "pageCount": 2
-  },
   "f728d128f89e": {
     "text": "More than one width and height combination was found in the document, and the summary breaks down how many pages use each. A rotated page counts as a separate size from its upright twin, so a landscape A4 page in a portrait A4 file triggers the warning. To make everything uniform, use <1>Fix Page Size</1>.",
     "tags": [
@@ -42330,6 +42338,16 @@
     ],
     "pages": [
       "pdf-converter"
+    ],
+    "pageCount": 1
+  },
+  "f82e523997cf": {
+    "text": "Drop JPG, PNG, WebP, HEIC, TIFF, BMP, GIF, or SVG files alongside your PDFs and each image becomes a page you can move, rotate, or delete like any other. Blank pages can also be added from the Insert menu.",
+    "tags": [
+      "p"
+    ],
+    "pages": [
+      "pdf-multi-tool"
     ],
     "pageCount": 1
   },
@@ -43370,6 +43388,16 @@
     ],
     "pages": [
       "add-stamps"
+    ],
+    "pageCount": 1
+  },
+  "fe29dd5f87d7": {
+    "text": "Yes, through BentoPDF's own tools in an eligible product. The <1>BentoPDF commercial license</1> includes Hyper Compress as a bundled component for companies under US$1 million in revenue and funding, in general PDF toolkits, running on the end user's device. Using the engine directly, through an API, SDK, command line or server process, inside other software, in a compression product, or above that size needs a Hyper Compress license. A Hyper Compress license does not cover BentoPDF.",
+    "tags": [
+      "p"
+    ],
+    "pages": [
+      "hyper-compress"
     ],
     "pageCount": 1
   },

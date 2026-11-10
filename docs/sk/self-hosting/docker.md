@@ -77,14 +77,19 @@ podman-compose up -d
 # Dockerfile
 FROM node:20-alpine AS builder
 WORKDIR /app
+ENV HUSKY=0
 COPY package*.json ./
+COPY vendor ./vendor
 RUN npm ci
 COPY . .
 RUN npm run build
 
 FROM nginxinc/nginx-unprivileged:alpine
 COPY --from=builder /app/dist /usr/share/nginx/html
+COPY --from=builder /app/security-headers.conf /etc/nginx/security-headers.conf
+COPY --from=builder /app/security-headers-docs.conf /etc/nginx/security-headers-docs.conf
 COPY nginx.conf /etc/nginx/nginx.conf
+RUN mkdir -p /etc/nginx/tmp
 EXPOSE 8080
 CMD ["nginx", "-g", "daemon off;"]
 ```
@@ -118,6 +123,7 @@ docker run -d -p 3000:8080 bentopdf:custom
 | `DISABLE_GITHUB_STARS`               | Vynechá získanie počtu hviezdičiek GitHub pri načítaní stránky a odstráni `api.github.com` z CSP. Zostavenia Simple Mode ho vynechávajú vždy.                                          | `false`                                                        |
 | `SITE_URL`                           | Verejná URL zapísaná do odkazov canonical, hreflang a sitemap. Nechajte predvolenú hodnotu, pokiaľ nechcete, aby vyhľadávače považovali vaše nasadenie za samostatnú stránku.          | `https://www.bentopdf.com`                                     |
 | `ALLOW_INDEXING`                     | S vlastnou `SITE_URL` je každá stránka označená `noindex`, aby vaša kópia nekonkurovala bentopdf.com vo výsledkoch vyhľadávania. Nastavte na `true`, ak ju majú vyhľadávače indexovať. | `false`                                                        |
+| `COMPRESSION_MODE`                   | Predkomprimované kópie uložené vedľa každého súboru: `o` žiadne, `g` `.gz` (servíruje ich nginx v obraze), `b` `.br`, `all` obe. Nginx v obraze nevie servírovať `.br`.                | `o`                                                            |
 
 URL WASM modulov sú vopred nastavené na predvolené CDN, takže všetky pokročilé funkcie fungujú hneď. Pri izolovaných (air-gapped) alebo vlastných nasadeniach ich prepíšte.
 
@@ -254,6 +260,8 @@ Môžete vypnúť aj konkrétne funkcie v PDF editore (napr. začiernenie, anot�
 
 **Tvary:** `annotation-shape`, `annotation-rectangle`, `annotation-circle`, `annotation-line`, `annotation-arrow`, `annotation-polygon`, `annotation-polyline`
 
+**Meranie:** `annotation-measurement`, `mode-measure`, `annotation-distance`, `annotation-perimeter`, `annotation-area`
+
 **Formuláre:** `form`, `form-textfield`, `form-checkbox`, `form-radio`, `form-select`, `form-listbox`, `form-fill-mode`
 
 **Začiernenie:** `redaction`, `redaction-area`, `redaction-text`, `redaction-apply`, `redaction-clear`
@@ -264,7 +272,7 @@ Môžete vypnúť aj konkrétne funkcie v PDF editore (napr. začiernenie, anot�
 
 **Panel:** `panel`, `panel-sidebar`, `panel-search`, `panel-comment`
 
-**Nástroje:** `tools`, `pan`, `pointer`, `capture`
+**Nástroje:** `tools`, `pan`, `pointer`, `capture`, `organize`
 
 **Výber:** `selection`, `selection-copy`
 

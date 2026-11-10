@@ -77,14 +77,19 @@ podman-compose up -d
 # Dockerfile
 FROM node:20-alpine AS builder
 WORKDIR /app
+ENV HUSKY=0
 COPY package*.json ./
+COPY vendor ./vendor
 RUN npm ci
 COPY . .
 RUN npm run build
 
 FROM nginxinc/nginx-unprivileged:alpine
 COPY --from=builder /app/dist /usr/share/nginx/html
+COPY --from=builder /app/security-headers.conf /etc/nginx/security-headers.conf
+COPY --from=builder /app/security-headers-docs.conf /etc/nginx/security-headers-docs.conf
 COPY nginx.conf /etc/nginx/nginx.conf
+RUN mkdir -p /etc/nginx/tmp
 EXPOSE 8080
 CMD ["nginx", "-g", "daemon off;"]
 ```
@@ -118,6 +123,7 @@ docker run -d -p 3000:8080 bentopdf:custom
 | `DISABLE_GITHUB_STARS`               | Omet la consulta del nombre d'estrelles de GitHub en carregar la pàgina i elimina `api.github.com` de la CSP. Les compilacions en mode simple sempre l'ometen.                                                 | `false`                                                        |
 | `SITE_URL`                           | URL pública escrita als enllaços canonical, hreflang i del mapa del lloc. Deixa-la per defecte tret que vulguis que els cercadors tractin el teu desplegament com un lloc propi.                               | `https://www.bentopdf.com`                                     |
 | `ALLOW_INDEXING`                     | Amb un `SITE_URL` personalitzat, totes les pàgines es marquen com a `noindex` perquè la teva còpia no competeixi amb bentopdf.com als resultats de cerca. Defineix-ho a `true` perquè els cercadors l'indexin. | `false`                                                        |
+| `COMPRESSION_MODE`                   | Còpies precomprimides que es desen al costat de cada fitxer: `o` cap, `g` `.gz` (les serveix el nginx de la imatge), `b` `.br`, `all` totes dues. El nginx de la imatge no pot servir `.br`.                   | `o`                                                            |
 
 Les URL dels mòduls WASM vénen preconfigurades amb CDN per defecte, així que totes les funcions avançades funcionen directament. Substitueix-les en desplegaments aïllats de la xarxa o autoallotjats.
 
@@ -254,6 +260,8 @@ També pots desactivar funcions concretes de l'editor de PDF (p. ex., censura, a
 
 **Formes:** `annotation-shape`, `annotation-rectangle`, `annotation-circle`, `annotation-line`, `annotation-arrow`, `annotation-polygon`, `annotation-polyline`
 
+**Mesura:** `annotation-measurement`, `mode-measure`, `annotation-distance`, `annotation-perimeter`, `annotation-area`
+
 **Formulari:** `form`, `form-textfield`, `form-checkbox`, `form-radio`, `form-select`, `form-listbox`, `form-fill-mode`
 
 **Censura:** `redaction`, `redaction-area`, `redaction-text`, `redaction-apply`, `redaction-clear`
@@ -264,7 +272,7 @@ També pots desactivar funcions concretes de l'editor de PDF (p. ex., censura, a
 
 **Tauler:** `panel`, `panel-sidebar`, `panel-search`, `panel-comment`
 
-**Eines:** `tools`, `pan`, `pointer`, `capture`
+**Eines:** `tools`, `pan`, `pointer`, `capture`, `organize`
 
 **Selecció:** `selection`, `selection-copy`
 
